@@ -1,34 +1,46 @@
+### Gradle ###
 .gradle
-build
-checkout
-out
-target
-logs
-*.iml
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+!**/src/integration-test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+!**/src/integration-test/**/bin/
+
+### IntelliJ IDEA ###
 .idea
 *.iws
+*.iml
 *.ipr
-*.war
-workspace.xml
-*/lib/build
-*/lib/compile
-*/lib/runtime
-*/lib/test
-~$*
-*.log
-*/reports/
-*.orig
-*.zip
-*.sha1
-*/docs
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+!**/src/integration-test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Other ###
+Thumbs.db
 .DS_Store
-*/web-app/WEB-INF/classes
-cobertura.ser
-plugin.xml
-/prodDb.*
-*Db.properties
-*Db.script
-jasypt-encryption/web-app/WEB-INF
-test-jasypt/web-app/WEB-INF/tld/c.tld
-test-jasypt/web-app/WEB-INF/tld/fmt.tld
-.secret/
+target/
+lib/
