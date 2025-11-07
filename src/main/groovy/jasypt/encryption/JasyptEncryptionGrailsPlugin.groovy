@@ -28,8 +28,8 @@ class JasyptEncryptionGrailsPlugin extends Plugin {
             [name: "Matt Aguirre", email: 'matt@tros.org'],
     ]
     def documentation = "http://grails.org/plugin/jasypt-encryption"
-    def issueManagement = [system: "GITLAB", url: "https://gitlab.com/tros_org/grails-jasypt/-/issues"]
-    def scm = [url: "https://gitlab.com/tros_org/grails-jasypt"]
+    def issueManagement = [system: "GITHUB", url: "https://github.com/ZenHarbinger/grails-jasypt/issues"]
+    def scm = [url: "https://github.com/ZenHarbinger/grails-jasypt"]
     def profiles = ['web']
 
        Closure doWithSpring() { {->
