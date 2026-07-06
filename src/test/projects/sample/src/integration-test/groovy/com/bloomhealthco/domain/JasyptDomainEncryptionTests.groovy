@@ -1,17 +1,17 @@
 package com.bloomhealthco.domain
 
-import grails.test.mixin.integration.Integration
-import grails.transaction.*
-import groovy.sql.Sql
-import spock.lang.*
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
+import groovy.sql.Sql
+import spock.lang.Specification
+
+import javax.sql.DataSource
 
 @Integration
 @Rollback
 class JasyptDomainEncryptionTests extends Specification {
-    
-    def dataSource
+
+    DataSource dataSource
 
     String CORRELATION_ID = "ABC123"
 
@@ -95,7 +95,7 @@ class JasyptDomainEncryptionTests extends Specification {
         (1..256).each { val ->
             def firstName = LONG_NAME_256.substring(0, val)
             new Patient(firstName: firstName, correlationId: val, lastName: "foo").save(failOnError: true)
-            withPatientForCorrelationId(val) { patient, rawPatient ->
+            withPatientForCorrelationId(val as String) { patient, rawPatient ->
                 expect:
                 patient
                 firstName == patient.firstName
@@ -119,7 +119,7 @@ class JasyptDomainEncryptionTests extends Specification {
         return true
     }
 
-    def withPatientForCorrelationId(correlationId, closure) {
+    def withPatientForCorrelationId(String correlationId, Closure closure) {
         def patient = Patient.findByCorrelationId(correlationId)
         assert patient
         retrieveRawPatientFromDatabase(correlationId) { rawPatient ->

@@ -1,38 +1,30 @@
 buildscript {
-    ext {
-        grailsVersion = project.grailsVersion
-    }
     repositories {
-        mavenLocal()
-        maven { url "https://repo.grails.org/grails/core" }
+        mavenCentral()
+        maven { url "https://repo.grails.org/grails/restricted" }
+        maven {
+            url = 'https://repository.apache.org/content/groups/snapshots'
+            content {
+                includeVersionByRegex('org[.]apache[.](grails|groovy).*', '.*', '.*-SNAPSHOT')
+            }
+        }
     }
     dependencies {
-        classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.14.6"
-        classpath "org.grails.plugins:hibernate5:${gormVersion - ".RELEASE"}"
+        classpath platform("org.apache.grails:grails-bom:$grailsVersion")
+        classpath "org.apache.grails:grails-gradle-plugins"
+        classpath "org.apache.grails:grails-data-hibernate5"
+        classpath "cloud.wondrify:asset-pipeline-gradle"
     }
 }
-
-plugins {
-    id "io.spring.dependency-management" version "0.5.2.RELEASE"
-}
-
 version "0.1"
 group "sample"
 
-// apply plugin: "spring-boot"
+apply plugin: "eclipse"
+apply plugin: "idea"
 apply plugin: "war"
-apply plugin: "maven"
-apply plugin: "asset-pipeline"
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: "org.grails.grails-web"
-apply plugin: "org.grails.grails-gsp"
-
-ext {
-    grailsVersion = project.grailsVersion
-    gradleWrapperVersion = project.gradleWrapperVersion
-}
+apply plugin: "org.apache.grails.gradle.grails-web"
+apply plugin: "cloud.wondrify.asset-pipeline"
+apply plugin: "org.apache.grails.gradle.grails-gsp"
 
 assets {
     minifyJs = true
@@ -41,42 +33,73 @@ assets {
 
 repositories {
     mavenLocal()
-    maven { url "https://repo.grails.org/grails/core" }
-}
-
-dependencyManagement {
-    imports {
-        mavenBom 'org.grails:grails-bom:' + grailsVersion
+    mavenCentral()
+    maven { url = 'https://repo.grails.org/grails/restricted' }
+    maven {
+        url = 'https://repository.apache.org/content/groups/snapshots'
+        content {
+            includeVersionByRegex('org[.]apache[.](grails|groovy).*', '.*', '.*-SNAPSHOT')
+        }
     }
-    applyMavenExclusions false
 }
 
 dependencies {
-    compile "org.grails.plugins:jasypt-encryption:4.0.3"
-    testCompile "org.grails:grails-gorm-testing-support"
+    implementation "org.tros:jasypt-encryption:5.0.0-SNAPSHOT"
 
-    compile "org.springframework.boot:spring-boot-starter-logging"
-    compile "org.springframework.boot:spring-boot-starter-actuator"
-    compile "org.springframework.boot:spring-boot-autoconfigure"
-    compile "org.springframework.boot:spring-boot-starter-tomcat"
-    compile "org.grails:grails-dependencies"
-    compile "org.grails:grails-web-boot"
-
-    compile "org.grails.plugins:hibernate5"
-    compile "org.grails.plugins:cache"
-    compile "org.hibernate:hibernate-ehcache"
-    runtime "com.h2database:h2"
-
-    // runtime "org.grails.plugins:asset-pipeline"
-    runtime "com.bertramlabs.plugins:asset-pipeline-grails:3.0.7"
-    runtime "org.grails.plugins:scaffolding"
-
-    testCompile "org.grails:grails-plugin-testing:3.3.0.M2"
-    testCompile "org.grails.plugins:geb"
-
-    // Note: It is recommended to update to a more robust driver (Chrome, Firefox etc.)
-    testRuntime 'org.seleniumhq.selenium:selenium-htmlunit-driver:2.44.0'
-
-    console "org.grails:grails-console"
+    console "org.apache.grails:grails-console"
+    developmentOnly "org.springframework.boot:spring-boot-devtools"
+    implementation platform("org.apache.grails:grails-bom:$grailsVersion")
+    implementation "org.springframework.boot:spring-boot-starter-logging"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
+    implementation "org.springframework.boot:spring-boot-autoconfigure"
+    implementation "org.springframework.boot:spring-boot-starter"
+    implementation "org.apache.grails:grails-core"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-tomcat"
+    implementation "org.apache.grails:grails-web-boot"
+    implementation "org.apache.grails:grails-logging"
+    implementation "org.apache.grails:grails-rest-transforms"
+    implementation "org.apache.grails:grails-databinding"
+    implementation "org.apache.grails:grails-services"
+    implementation "org.apache.grails:grails-url-mappings"
+    implementation "org.apache.grails:grails-layout"
+    implementation "org.apache.grails:grails-interceptors"
+    implementation "org.apache.grails:grails-scaffolding"
+    implementation "org.apache.grails:grails-data-hibernate5"
+    implementation "org.apache.grails:grails-gsp"
+    integrationTestImplementation testFixtures("org.apache.grails:grails-geb")
+    profile "org.apache.grails.profiles:web"
+    runtimeOnly "org.fusesource.jansi:jansi"
+    runtimeOnly "com.h2database:h2"
+    runtimeOnly "com.zaxxer:HikariCP"
+    runtimeOnly "cloud.wondrify:asset-pipeline-grails"
+    testAndDevelopmentOnly "org.webjars.npm:bootstrap"
+    testAndDevelopmentOnly "org.webjars.npm:bootstrap-icons"
+    testAndDevelopmentOnly "org.webjars.npm:jquery"
+    testImplementation "org.apache.grails:grails-testing-support-datamapping"
+    testImplementation "org.spockframework:spock-core"
+    testImplementation "org.apache.grails:grails-testing-support-web"
 }
+compileJava.options.release = 17
 
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
+}
+assets {
+    excludes = [
+            'webjars/jquery/**',
+            'webjars/bootstrap/**',
+            'webjars/bootstrap-icons/**'
+    ]
+    includes = [
+            'webjars/jquery/*/dist/jquery.js',
+            'webjars/bootstrap/*/dist/js/bootstrap.bundle.js',
+            'webjars/bootstrap/*/dist/css/bootstrap.css',
+            'webjars/bootstrap-icons/*/font/bootstrap-icons.css',
+            'webjars/bootstrap-icons/*/font/fonts/*',
+    ]
+}

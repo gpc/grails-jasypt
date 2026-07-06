@@ -1,16 +1,16 @@
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.bmuschko:gradle-clover-plugin:2.2.3'
+        classpath 'com.bmuschko:gradle-clover-plugin:3.0.7'
     }
 }
 
 apply plugin: 'com.bmuschko.clover'
 
 dependencies {
-    clover 'org.openclover:clover:4.3.1'
+    clover 'org.openclover:clover:4.5.2'
 }
 
 clover {
