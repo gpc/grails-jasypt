@@ -1,0 +1,44 @@
+[[unlimitedEncryption]]
+=== Enabling "Unlimited" Encryption in Java
+
+Because of American export standards, and the notion that http://en.wikipedia.org/wiki/Export_of_cryptography_in_the_United_States[cryptographically strong algorithms are "munitions"], you'll want to make sure that the encryption policy jars that came with your installation of Java allow "unlimited" encryption, rather than the default "strong" (which are actually pretty weak).
+
+To check to see what level of encryption your installation of Java has, you'll need to do one of two things:
+
+. Run the code from this https://gist.github.com/jehrhardt/5167854[gist on github]
+. Crack open your `$JAVA_HOME/jre/lib/security/local_policy.jar` to see what's inside:
++
+[source,shell]
+----
+% cd /tmp
+% cp $JAVA_HOME/jre/lib/security/local_policy.jar .
+% jar xvf local_policy.jar
+ inflated: META-INF/MANIFEST.MF
+ inflated: META-INF/JCE_RSA.SF
+ inflated: META-INF/JCE_RSA.RSA
+  created: META-INF/
+ inflated: default_local.policy
+
+% cat default_local.policy
+// Country-specific policy file for countries with no limits on crypto strength.
+grant {
+    // There is no restriction to any algorithms.
+    permission javax.crypto.CryptoAllPermission;
+};
+----
+
+If the permissions look like that, you're set. Mac laptops bought in the US have this configured by default, all other installations have needed to be upgraded (including all Linux distros).
+
+Installing the new jar files is easy, just go download the "Java Cryptography Extension (JCE)" under "Other Downloads" on Oracle's website.
+
+Unzip the zip file and copy the jar files into your `$JAVA_HOME/jre/lib/security` directory to overwrite the existing, limited encryption jars.
+
+[source,shell]
+----
+# make a backup copy of your existing files
+mkdir old_java_security
+cp -r $JAVA_HOME/jre/lib/security old_java_security
+
+unzip jce_policy-6.zip
+sudo cp jce/*.jar $JAVA_HOME/jre/lib/security
+----

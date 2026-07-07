@@ -1,0 +1,25 @@
+---
+project:
+  name: "grails-jasypt-encryption-plugin"
+  title: "Grails Jasypt Encryption plugin"
+  description: "The Grails Jasypt Encryption plugin provides strong field-level encryption support on Grails GORM String fields. It leverages the Jasypt simplified encryption framework that makes working with the Java Cryptographic Extension (JCE) much easier."
+  org: "Grails Plugins Collective"
+github:
+  org: "gpc"
+  project: "grails-jasypt"
+license:
+  name: "Apache-2.0"
+contributors:
+  dtanner: "Dan Tanner"
+  ZenHarbinger: "Matthew Aguirre"
+  burtbeckwith: "Burt Beckwith"
+  sbglasius: "Søren Berg Glasius"
+versions:
+  current: "5.0.0"
+  previous:
+  - "4.0.4"
+  - "1.2.1"
+  - "1.2.0"
+  ignore:
+  - "5.0.x"
+  - "snapshot"

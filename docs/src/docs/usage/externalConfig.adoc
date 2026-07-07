@@ -1,0 +1,12 @@
+[[externalConfig]]
+=== External Config Files in Grails
+
+You can put the encryption configuration in `Config.groovy`, but a better location would be an external configuration file that does not get checked into source code (and can vary based on environment). Just put something like this in your `Config.groovy` file to define an external config file:
+
+[source,groovy]
+----
+def configFilePath = System.getenv('ENCRYPTION_CONFIG_LOCATION') ?: "file:${userHome}/.jasypt"
+grails.config.locations = [configFilePath]
+----
+
+This enables you to set an environment variable with the location of the encryption configuration, otherwise it will look for a `.jasypt` file in the current user's home (useful for developers).

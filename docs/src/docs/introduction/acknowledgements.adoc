@@ -1,0 +1,9 @@
+[[acknowledgements]]
+=== Acknowledgments
+
+Following are the plugin contributors:
+
+* https://github.com/dtanner[Dan Tanner]
+* https://github.com/ZenHarbinger[Matthew Aguirre]
+* https://github.com/burtbeckwith[Burt Beckwith]
+* https://github.com/sbglasius[Søren Berg Glasius]

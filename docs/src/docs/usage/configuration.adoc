@@ -1,0 +1,16 @@
+[[configuration]]
+=== Configuration
+
+You'll then need to configure the encryption in your Grails configuration using a stanza like this (make sure to change the password):
+
+[source,groovy]
+----
+jasypt {
+    algorithm = "PBEWITHSHA256AND256BITAES-CBC-BC"
+    providerName = "BC"
+    password = "<your very secret passphrase>"
+    keyObtentionIterations = 1000
+}
+----
+
+This will configure your encryption to use a 256 bit AES algorithm to do the encryption. Key generation will also be repeated 1000 times (to slow down any brute force attacks). Changing any of these values will result in different results (and will also prevent the ability to decrypt previously encrypted information).

@@ -1,0 +1,12 @@
+[[introduction]]
+== Introduction
+
+The Grails Jasypt Encryption plugin provides strong field-level encryption support on Grails GORM String fields. It leverages the http://www.jasypt.org[Jasypt] simplified encryption framework that makes working with the Java Cryptographic Extension (JCE) much easier.
+
+It also comes with the http://www.bouncycastle.org/java.html[Bouncy Castle] encryption provider, which gives you access to the very secure http://en.wikipedia.org/wiki/Advanced_Encryption_Standard[AES] algorithm.
+
+include::introduction/license.adoc[]
+
+include::introduction/acknowledgements.adoc[]
+
+include::introduction/sourceCode.adoc[]

@@ -1,0 +1,8 @@
+= Grails Jasypt Encryption Plugin - Reference Documentation
+Grails Plugins Collective
+
+include::introduction.adoc[]
+
+include::usage.adoc[]
+
+include::releaseNotes.adoc[]
