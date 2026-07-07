@@ -64,7 +64,7 @@ if (hasVersions) {
     println "No versioned directories found on gh-pages — building index with snapshot only"
 }
 
-// Generate ghpages.html so the workflow can push it directly to gh-pages
+// Generate index.html so the workflow can push it directly to gh-pages
 def tmplFile = new File('docs/src/docs/index.tmpl')
 if (tmplFile.exists()) {
     def githubOrg     = projectYml.github.org as String
@@ -86,8 +86,8 @@ if (tmplFile.exists()) {
     ]
 
     def html = new groovy.text.SimpleTemplateEngine().createTemplate(tmplFile.text).make(tokens).toString()
-    def outFile = new File('build/ghpages.html')
+    def outFile = new File('build/index.html')
     outFile.parentFile.mkdirs()
     outFile.text = html
-    println "Generated build/ghpages.html"
+    println "Generated build/index.html"
 }

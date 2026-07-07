@@ -52,7 +52,7 @@ jobs:
           sdk install groovy ${{ env.SDKMANRC_groovy }} < /dev/null
           echo "$HOME/.sdkman/candidates/groovy/current/bin" >> $GITHUB_PATH
 
-      - name: "🔢 Update versions in project.yml and generate ghpages.html"
+      - name: "🔢 Update versions in project.yml and generate index.html"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -72,18 +72,18 @@ jobs:
 
       - name: "🚀 Push updated index to gh-pages"
         run: |
-          if [ ! -f build/ghpages.html ]; then
-            echo "No build/ghpages.html generated — skipping gh-pages update"
+          if [ ! -f build/index.html ]; then
+            echo "No build/index.html generated — skipping gh-pages update"
             exit 0
           fi
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          cp build/ghpages.html /tmp/ghpages.html
+          cp build/index.html /tmp/index.html
           git fetch origin gh-pages
           git checkout gh-pages
-          cp /tmp/ghpages.html ghpages.html
-          if ! git diff --quiet ghpages.html; then
-            git add ghpages.html
+          cp /tmp/index.html index.html
+          git add index.html
+          if ! git diff --cached --quiet; then
             git commit -m "chore: update version index [skip ci]"
             git push origin gh-pages
           else
