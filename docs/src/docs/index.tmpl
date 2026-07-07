@@ -303,6 +303,7 @@
         <h2 class="section-title">Documentation</h2>
 
         <div class="docs-grid">
+            <% if (HAS_VERSIONS) { %>
             <div class="doc-card">
                 <span class="version-badge latest">Latest Release</span>
                 <span class="version-badge latest">${LATEST_VERSION}</span>
@@ -322,6 +323,7 @@
                     </a>
                 </div>
             </div>
+            <% } %>
 
             <div class="doc-card">
                 <span class="version-badge snapshot">Snapshot</span>
@@ -343,6 +345,7 @@
             </div>
         </div>
 
+        <% if (HAS_VERSIONS) { %>
         <h2 class="section-title">Other Versions</h2>
         <div class="doc-card" style="margin-bottom: 3rem;">
             <div class="version-selector">
@@ -366,6 +369,7 @@
                 </div>
             </div>
         </div>
+        <% } %>
     </main>
 
     <script>
@@ -373,6 +377,7 @@
             var sel   = document.getElementById('versionSelect');
             var guide = document.getElementById('versionUserGuide');
             var api   = document.getElementById('versionApiRef');
+            if (!sel) return;
             function update() {
                 var v = sel.value;
                 if (!v) return;

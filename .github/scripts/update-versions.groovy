@@ -48,20 +48,21 @@ def sorted = entries
             (!av[3] && bv[3] ? -1 : av[3] && !bv[3] ? 1 : bv[3] <=> av[3])
     }
 
-if (!sorted) {
-    println "No versioned directories found on gh-pages — skipping update"
-    System.exit(0)
+def hasVersions = !sorted.isEmpty()
+
+if (hasVersions) {
+    // ignore is preserved; only current and previous are updated
+    projectYml.versions.current  = sorted.first()
+    projectYml.versions.previous = sorted
+
+    def yaml = new YamlBuilder()
+    yaml(projectYml)
+    projectYmlFile.text = yaml.toString()
+
+    println "Versions updated: current=${projectYml.versions.current}, total=${sorted.size()}"
+} else {
+    println "No versioned directories found on gh-pages — building index with snapshot only"
 }
-
-// ignore is preserved; only current and previous are updated
-projectYml.versions.current  = sorted.first()
-projectYml.versions.previous = sorted
-
-def yaml = new YamlBuilder()
-yaml(projectYml)
-projectYmlFile.text = yaml.toString()
-
-println "Versions updated: current=${projectYml.versions.current}, total=${sorted.size()}"
 
 // Generate ghpages.html so the workflow can push it directly to gh-pages
 def tmplFile = new File('docs/src/docs/index.tmpl')
@@ -73,7 +74,8 @@ if (tmplFile.exists()) {
         .join('\n                    ')
 
     def tokens = [
-        LATEST_VERSION        : projectYml.versions.current,
+        HAS_VERSIONS          : hasVersions,
+        LATEST_VERSION        : hasVersions ? projectYml.versions.current : '',
         OTHER_VERSIONS_OPTIONS: optionsHtml,
         GITHUB_REPO_URL       : "https://github.com/${githubOrg}/${githubProject}",
         GITHUB_ORG_URL        : "https://github.com/${githubOrg}",
