@@ -64,7 +64,7 @@ jobs:
           -PskipCodeStyle
   publish:
     # only run the publishing task on this repo (not on forks)
-    if: (github.repository_owner == 'grails-plugins' || github.repository_owner == 'gpc') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: ${{ contains(fromJSON('["grails-plugins", "gpc"]'), github.repository_owner) && contains(fromJSON('["pull_request","workflow_dispatch"]'), github.event_name)  }}
     needs: build
     name: "Publish Snapshot"
     runs-on: ubuntu-24.04
@@ -113,7 +113,7 @@ jobs:
           GRADLE_PUBLISH_RELEASE: 'false'
           SOURCE_FOLDER: build/docs
   update-index:
-    if: (github.repository_owner == 'grails-plugins' || github.repository_owner == 'gpc') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: ${{ contains(fromJSON('["grails-plugins", "gpc"]'), github.repository_owner) && contains(fromJSON('["pull_request","workflow_dispatch"]'), github.event_name)  }}
     needs: publish
     uses: ./.github/workflows/update-versions.yml
     permissions:
