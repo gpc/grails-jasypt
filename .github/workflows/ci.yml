@@ -116,6 +116,8 @@ jobs:
     if: ${{ contains(fromJSON('["grails-plugins", "gpc"]'), github.repository_owner) && contains(fromJSON('["pull_request","workflow_dispatch"]'), github.event_name)  }}
     needs: publish
     uses: ./.github/workflows/update-versions.yml
+    with:
+      branch: ${{ github.head_ref }}
     permissions:
       contents: write
     secrets: inherit
