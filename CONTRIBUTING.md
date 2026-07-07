@@ -57,7 +57,7 @@ Key architectural rules:
 ./gradlew build
 
 # Plugin unit tests only
-./gradlew :grails-plugin-template:test
+./gradlew :grails-jasypt-encryption:test
 
 # Integration tests (runs the example app)
 ./gradlew :app1:integrationTest

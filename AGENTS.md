@@ -1,14 +1,14 @@
-# AGENTS.md - grails-plugin-template
+# AGENTS.md - grails-jasypt-encryption
 
 ## Project Overview
 
-This is a **Grails Plugin Template**, that can be used either as a starting point for a new
-grails project, or as base for existing plugins that needs a uniform release process
+The Grails Jasypt Encryption plugin provides strong field-level encryption support on Grails
+GORM `String` fields, built on Jasypt and Bouncy Castle.
 
 - **Language:** Groovy 4.0.30 on Java 17
 - **Framework:** Grails 7.x
 - **Build System:** Gradle 8.14.4 (with wrapper)
-- **Current Version:** 1.0.0-SNAPSHOT
+- **Current Version:** 5.0.0-SNAPSHOT
 - **License:** Apache 2.0
 
 ## Skill Files (Best Practices)
@@ -31,7 +31,7 @@ Detailed best practices are documented in `.skills/`:
 2. **The plugin project contains ONLY plugin code and unit tests.** No integration tests, no functional tests, no
    example controllers or views.
 3. **Example apps under `examples/` host all integration and functional tests.** They depend on the plugin via
-   `implementation project(':grails-plugin-template')` and test it as a real consumer would.
+   `implementation project(':grails-jasypt-encryption')` and test it as a real consumer would.
 4. **Use Gradle convention plugins to deduplicate.** If two or more subprojects share build logic, extract it into a
    convention plugin in `build-logic/`.
 5. **Always use lazy Gradle APIs** to avoid eager initialization (`tasks.register()`, `tasks.named()`, `configureEach`,
@@ -40,12 +40,12 @@ Detailed best practices are documented in `.skills/`:
 ## Repository Structure
 
 ```
-grails-plugin-template/
+grails-jasypt/
 ├── .skills/             # Best practice skill files
-├── plugin/              # Core Grails plugin (artifact: grails-plugin-template)
+├── plugin/              # Core Grails plugin (artifact: grails-jasypt-encryption)
 │   ├── grails-app/      #   Plugin services, domain, controller, taglibs and conf
 │   └── src/main/        #   Plugin source code 
-├── examples/app1/       # Example Grails app
+├── examples/sample/     # Example Grails app
 │   └── grails-app/      #   Controllers and conf for integration testing
 ├── docs/                # Asciidoctor documentation
 ├── build-logic/         # Gradle convention plugins (composite build)
@@ -62,16 +62,16 @@ grails-plugin-template/
 ./gradlew build
 
 # Run only unit tests (plugin module)
-./gradlew :grails-plugin-template:test
+./gradlew :grails-jasypt-encryption:test
 
 # Run integration tests (example app)
-./gradlew :app1:integrationTest
+./gradlew :sample:integrationTest
 
 # Skip tests
 ./gradlew build -PskipTests
 
 # Run the example app
-./gradlew :app1:bootRun
+./gradlew :sample:bootRun
 
 # Generate documentation
 ./gradlew docs
@@ -98,30 +98,37 @@ Run `sdk env install` to set up the environment.
 
 ## Architecture
 
-The plugin provides a grails-plugin-template mechanism:
+The plugin provides GORM `UserType` implementations that transparently encrypt/decrypt field
+values using Jasypt:
 
-1. **`PluginTemplateGrailsPlugin`** registers the plugin 
+1. **`JasyptEncryptionGrailsPlugin`** registers the plugin and wires up the `jasypt` configuration
+   namespace.
+2. **`JasyptConfiguredUserType`** and its subclasses (`GormEncryptedStringType`,
+   `GormEncryptedBigDecimalType`, etc.) implement the actual field-level encryption for each
+   supported type.
 
 ### Core Classes
 
-| Class / Interface            | Location                                          | Purpose            |
-|------------------------------|---------------------------------------------------|--------------------|
-| `PluginTemplateGrailsPlugin` | `plugin/src/main/groovy/grails/plugins/template/` | Plugin descriptor; |
+| Class / Interface               | Location                                                    | Purpose                                                     |
+|----------------------------------|--------------------------------------------------------------|--------------------------------------------------------------|
+| `JasyptEncryptionGrailsPlugin`  | `plugin/src/main/groovy/jasypt/encryption/`                 | Plugin descriptor; configures Jasypt from `jasypt` config    |
+| `JasyptConfiguredUserType`      | `plugin/src/main/groovy/com/bloomhealthco/jasypt/`          | Base class wiring a Jasypt encryptor to a Hibernate `UserType` |
+| `GormEncrypted*Type`            | `plugin/src/main/groovy/com/bloomhealthco/jasypt/`          | Per-type GORM mappings (String, BigDecimal, Boolean, etc.)   |
 
 ## Configuration
 
 ## Testing
 
-There is no testset in the plugin template project.
+There is currently no unit test set in `plugin/src/test/`.
 
 ### Unit Tests (`plugin/src/test/`)
 
 Unit tests use the **Spock Framework** and run on JUnit Platform. 
 
-### Integration / Functional Tests (`examples/app1/`)
+### Integration / Functional Tests (`examples/sample/`)
 
-The `TestController` in the example app is there for pure example. Integration and
-functional tests added here depend on the plugin as a real consumer would.
+The `Patient` domain object in the example app has encrypted `firstName` and `lastName` fields.
+Integration tests added here depend on the plugin as a real consumer would.
 
 ## Build-Logic Convention Plugins
 

@@ -182,7 +182,7 @@ These are available in all subprojects as project properties (`projectVersion`, 
 ./gradlew build
 
 # Plugin unit tests only
-./gradlew :grails-plugin-template:test
+./gradlew :grails-jasypt-encryption:test
 
 # Example app integration tests
 ./gradlew :app1:integrationTest

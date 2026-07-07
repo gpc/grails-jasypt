@@ -5,4 +5,4 @@
 
 version: 1
 references:
-  - purl: pkg:maven/io.github.gpc/grails-plugin-template
+  - purl: pkg:maven/io.github.gpc/grails-jasypt-encryption
