@@ -72,6 +72,10 @@ jobs:
 
       - name: "🚀 Push updated index to gh-pages"
         run: |
+          if [ ! -f build/ghpages.html ]; then
+            echo "No build/ghpages.html generated — skipping gh-pages update"
+            exit 0
+          fi
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cp build/ghpages.html /tmp/ghpages.html
