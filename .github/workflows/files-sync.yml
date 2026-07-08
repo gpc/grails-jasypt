@@ -21,7 +21,7 @@ jobs:
       repos: ${{ steps.prepare.outputs.repos }}
     steps:
       - name: "📥 Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: "Export .sdkmanrc properties"
         uses: apache/grails-github-actions/export-gradle-properties@asf
@@ -64,7 +64,7 @@ jobs:
       include: ${{ fromJson(needs.prepare-matrix.outputs.repos) }}
     steps:
       - name: "🔑 Mint org-scoped app token for ${{ matrix.org }}"
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ secrets.APP_ID }}
@@ -72,12 +72,12 @@ jobs:
           owner: ${{ matrix.org }}
 
       - name: "📥 Checkout source (template)"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: source
 
       - name: "📥 Checkout target (${{ matrix.org }}/${{ matrix.repo }})"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ matrix.org }}/${{ matrix.repo }}
           path: target
@@ -146,7 +146,7 @@ jobs:
 
       - name: "📤 Create Pull Request"
         id: create-pr
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           path: target
           token: ${{ steps.app-token.outputs.token }}
