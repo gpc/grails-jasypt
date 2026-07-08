@@ -1,7 +1,0 @@
-projects:
-  gpc:
-    - export
-    - grails-cookie
-  grails-plugins:
-    - grails-shiro
-    - grails-elasticsearch
