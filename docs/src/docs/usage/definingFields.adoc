@@ -1,0 +1,22 @@
+[[definingFields]]
+=== Defining Fields in your Domain to Encrypt
+
+Defining fields in your domain object that you want to be encrypted within the database is easy once the plugin is installed and configured, just define the "type" within the domain class' mapping:
+
+[source,groovy]
+----
+package com.bloomhealthco.domain
+
+import com.bloomhealthco.jasypt.GormEncryptedStringType
+
+class Member {
+    String firstName
+    String lastName
+    String ssn
+    static mapping = {
+        ssn type: GormEncryptedStringType
+    }
+}
+----
+
+One other caveat, if you're setting the length of the field within the database schema, you'll need to give yourself extra room as the encrypted value will be longer than the unencrypted value was. This length will depend on the encryption algorithm that you use. It's easy to write an integration test that can spit out all of the encrypted lengths for you. See `testEncryptionWithLongNamesFit()` in the plugin's https://github.com/gpc/grails-jasypt/blob/master/examples/sample/src/integration-test/groovy/com/bloomhealthco/domain/JasyptDomainEncryptionTests.groovy[sample project] for an example.

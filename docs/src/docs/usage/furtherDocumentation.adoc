@@ -1,0 +1,4 @@
+[[furtherDocumentation]]
+=== Further Documentation
+
+For now, documentation is a little light. There's a https://github.com/gpc/grails-jasypt/tree/master/examples/sample[sample project] checked in as part of the repository that shows the plugin being used (and has tests that exercise the functionality). The https://github.com/gpc/grails-jasypt/blob/master/examples/sample/grails-app/domain/com/bloomhealthco/domain/Patient.groovy[Patient domain object] has encrypted `firstName` and `lastName` fields on it.

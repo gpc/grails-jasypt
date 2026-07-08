@@ -1,0 +1,36 @@
+[[customTypes]]
+=== Custom Encryption Types
+
+The plugin provides "Gorm" versions of all the built in Encrypted types provided by the jasypt plugin, see http://www.jasypt.org/hibernate.html.
+
+It is also possible to define your own GORM encrypted types. This happens in two steps. First, you need a `UserType` that handles the encryption. This might be a class you have already from an existing Java application or you could extend the jasypt class `AbstractEncryptedAsStringType`. Second, you define a new Gorm Encrypted type that composes that `UserType` to provide the wiring to the Grails configuration.
+
+Here's an example that can encrypt joda-time dates (requires the joda-time jar to work):
+
+[source,groovy]
+----
+package com.bloomhealthco.jasypt
+
+import org.jasypt.hibernate.type.AbstractEncryptedAsStringType
+import org.joda.time.LocalDate
+
+public class EncryptedLocalDateAsStringType extends AbstractEncryptedAsStringType {
+
+    protected Object convertToObject(String string) {
+        if (!string) return null
+        if (!(string =~ /\d{4}-\d{2}-\d{2}/)) throw new IllegalArgumentException("String does not match YYYY-MM-dd pattern")
+        new LocalDate(string)
+    }
+
+    protected String convertToString(Object object) {
+        if (!object) return null
+        if (object.class != LocalDate) throw new IllegalArgumentException("Expected ${LocalDate.name} but was ${object.class.name}")
+        object.toString("YYYY-MM-dd")
+    }
+
+    public Class returnedClass() { LocalDate }
+}
+
+public class GormEncryptedLocalDateAsStringType extends JasyptConfiguredUserType<EncryptedLocalDateAsStringType> {
+}
+----

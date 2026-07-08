@@ -1,0 +1,180 @@
+name: "Files Sync"
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Specific project to sync (org/repo, e.g. gpc/export). Leave empty to sync all.'
+        required: false
+        type: string
+
+env:
+  JAVA_DISTRIBUTION: 'liberica'
+
+jobs:
+  prepare-matrix:
+    if: github.repository == 'grails-plugins/grails-plugin-template'
+    runs-on: ubuntu-24.04
+    outputs:
+      repos: ${{ steps.prepare.outputs.repos }}
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v6
+
+      - name: "Export .sdkmanrc properties"
+        uses: apache/grails-github-actions/export-gradle-properties@asf
+        with:
+          file: ".sdkmanrc"
+          prefix: "SDKMANRC_"
+
+      - name: "Determine Java Version"
+        run: echo "SDKMANRC_java=${{ env.SDKMANRC_java }}" | sed 's/-.*//' >> $GITHUB_ENV
+
+      - name: "☕️ Setup JDK"
+        uses: actions/setup-java@v5
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.SDKMANRC_java }}
+
+      - name: "🦊 Install Groovy ${{ env.SDKMANRC_groovy }}"
+        run: |
+          curl -s "https://get.sdkman.io" | bash
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+          sdk install groovy ${{ env.SDKMANRC_groovy }} < /dev/null
+          echo "$HOME/.sdkman/candidates/groovy/current/bin" >> $GITHUB_PATH
+
+      - name: "🗂️ Prepare sync matrix"
+        id: prepare
+        env:
+          FILTER_PROJECT: ${{ inputs.project }}
+        run: groovy .github/scripts/prepare-sync-matrix.groovy
+
+  sync-files:
+    needs: prepare-matrix
+    if: github.repository == 'grails-plugins/grails-plugin-template'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+    matrix:
+      include: ${{ fromJson(needs.prepare-matrix.outputs.repos) }}
+    steps:
+      - name: "🔑 Mint org-scoped app token for ${{ matrix.org }}"
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ matrix.org }}
+
+      - name: "📥 Checkout source (template)"
+        uses: actions/checkout@v6
+        with:
+          path: source
+
+      - name: "📥 Checkout target (${{ matrix.org }}/${{ matrix.repo }})"
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ matrix.org }}/${{ matrix.repo }}
+          path: target
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
+
+      - name: "🌿 Detect default branch"
+        id: branch
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          branch=$(gh api repos/${{ matrix.org }}/${{ matrix.repo }} --jq '.default_branch')
+          echo "branch=${branch}" >> $GITHUB_OUTPUT
+
+      - name: "🔄 Sync files from template"
+        run: |
+          set -euo pipefail
+
+          maybe_copy() {
+            local src="$1" dst="$2"
+            if [ -f "target/${dst}.lock" ]; then
+              echo "Skipping locked: ${dst}"
+              return
+            fi
+            mkdir -p "target/$(dirname "${dst}")"
+            cp "source/${src}" "target/${dst}"
+          }
+
+          # Workflow files — exclude files-sync.yml (template-only)
+          mkdir -p target/.github/workflows/
+          rsync -a --delete --exclude='files-sync.yml' \
+            source/.github/workflows/ target/.github/workflows/
+
+          # Scripts — exclude prepare-sync-matrix.groovy (template-only)
+          mkdir -p target/.github/scripts/
+          rsync -a --exclude='prepare-sync-matrix.groovy' \
+            source/.github/scripts/ target/.github/scripts/
+
+          # GitHub config singles (lock-aware)
+          maybe_copy .github/dependabot.yml      .github/dependabot.yml
+          maybe_copy .github/renovate.json       .github/renovate.json
+          maybe_copy .github/release-drafter.yml .github/release-drafter.yml
+
+          # Directories
+          mkdir -p target/.github/dependency-graph/
+          rsync -a source/.github/dependency-graph/ target/.github/dependency-graph/
+          mkdir -p target/.skills/
+          rsync -a --delete source/.skills/ target/.skills/
+          mkdir -p target/build-logic/
+          rsync -a source/build-logic/ target/build-logic/
+          mkdir -p target/gradle/
+          rsync -a source/gradle/ target/gradle/
+
+          # Root files (lock-aware)
+          maybe_copy .editorconfig   .editorconfig
+          maybe_copy .sdkmanrc       .sdkmanrc
+          maybe_copy CONTRIBUTING.md CONTRIBUTING.md
+          maybe_copy LICENSE.txt     LICENSE.txt
+          maybe_copy gradlew.bat     gradlew.bat
+
+          # gradlew needs +x
+          if [ ! -f "target/gradlew.lock" ]; then
+            cp source/gradlew target/gradlew
+            chmod +x target/gradlew
+          fi
+
+      - name: "📤 Create Pull Request"
+        id: create-pr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          path: target
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "chore: sync files from grails-plugin-template"
+          title: "Sync common files from grails-plugin-template"
+          body: |
+            Syncs common infrastructure files from [grails-plugin-template](https://github.com/grails-plugins/grails-plugin-template).
+
+            **Files updated:**
+            - `.github/workflows/` (CI, release, release-notes, update-contributors, update-versions)
+            - `.github/scripts/` (update-contributors, update-versions)
+            - `.github/dependabot.yml`, `renovate.json`, `release-drafter.yml`
+            - `.skills/`
+            - `build-logic/`
+            - `gradle/` (wrapper)
+            - `.editorconfig`, `.sdkmanrc`, `CONTRIBUTING.md`, `gradlew`, `gradlew.bat`, `LICENSE.txt`
+
+            > To lock a file and prevent future syncs, create a `<filename>.lock` file next to it.
+          branch: sync-files-from-template
+          base: ${{ steps.branch.outputs.branch }}
+          labels: "maintenance"
+
+      - name: "🔀 Enable auto-merge"
+        if: steps.create-pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh pr merge "${{ steps.create-pr.outputs.pull-request-url }}" \
+            --squash \
+            --auto \
+            --delete-branch

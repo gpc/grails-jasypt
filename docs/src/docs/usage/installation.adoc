@@ -1,0 +1,26 @@
+[[installation]]
+=== Installation
+
+[source,groovy]
+----
+dependencies {
+    implementation "org.tros:jasypt-encryption:5.0.0"
+}
+----
+
+If your app is using *Grails 7* or higher, then use version *5.0.0* of this plugin.
+
+*Requirements for Grails 7:*
+
+* Java 17 or higher
+* Gradle 8.5 or higher
+
+==== Previous versions
+
+If your app is using *Grails 4*, then use version *4.0.3* of this plugin.
+
+==== No longer supported
+
+* If your app is using *Grails 3* or higher, then use version *2.0.2* of this plugin.
+* If your app is using *Grails 2* and *Hibernate 4*, then use version *1.3.1* of this plugin.
+* If your app is using *Grails 2* and *Hibernate 3*, then use version *1.2.1* of this plugin.
