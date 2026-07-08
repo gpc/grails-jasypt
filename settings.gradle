@@ -34,12 +34,12 @@ buildCache {
     local { enabled = (isLocal && !isReproducibleBuild) || (isCI && isReproducibleBuild) }
 }
 
-rootProject.name = 'grails-jasypt-encryption-root'
+rootProject.name = 'grails-jasypt-root'
 
 include('plugin')
-project(':plugin').name = 'grails-jasypt-encryption'
+project(':plugin').name = 'grails-jasypt'
 include('docs')
-project(':docs').name = 'grails-jasypt-encryption-docs'
+project(':docs').name = 'grails-jasypt-docs'
 include('code-coverage')
 
 file('examples').listFiles({ it.directory } as FileFilter).each {

@@ -1,4 +1,4 @@
-# AGENTS.md - grails-jasypt-encryption
+# AGENTS.md - grails-jasypt
 
 ## Project Overview
 
@@ -31,7 +31,7 @@ Detailed best practices are documented in `.skills/`:
 2. **The plugin project contains ONLY plugin code and unit tests.** No integration tests, no functional tests, no
    example controllers or views.
 3. **Example apps under `examples/` host all integration and functional tests.** They depend on the plugin via
-   `implementation project(':grails-jasypt-encryption')` and test it as a real consumer would.
+   `implementation project(':grails-jasypt')` and test it as a real consumer would.
 4. **Use Gradle convention plugins to deduplicate.** If two or more subprojects share build logic, extract it into a
    convention plugin in `build-logic/`.
 5. **Always use lazy Gradle APIs** to avoid eager initialization (`tasks.register()`, `tasks.named()`, `configureEach`,
@@ -42,7 +42,7 @@ Detailed best practices are documented in `.skills/`:
 ```
 grails-jasypt/
 ├── .skills/             # Best practice skill files
-├── plugin/              # Core Grails plugin (artifact: grails-jasypt-encryption)
+├── plugin/              # Core Grails plugin (artifact: grails-jasypt)
 │   ├── grails-app/      #   Plugin services, domain, controller, taglibs and conf
 │   └── src/main/        #   Plugin source code 
 ├── examples/sample/     # Example Grails app
@@ -62,7 +62,7 @@ grails-jasypt/
 ./gradlew build
 
 # Run only unit tests (plugin module)
-./gradlew :grails-jasypt-encryption:test
+./gradlew :grails-jasypt:test
 
 # Run integration tests (example app)
 ./gradlew :sample:integrationTest

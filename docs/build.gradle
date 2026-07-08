@@ -19,7 +19,7 @@ def asciidoctorAttributes = [
         idseparator         : '-',
         version             : project.version,
         projectUrl          : "https://github.com/${githubOrg}/${githubProject}",
-        sourcedir           : "${rootProject.allprojects.find { it.name == 'grails-jasypt-encryption' }.projectDir}/src/main/groovy",
+        sourcedir           : "${rootProject.allprojects.find { it.name == 'grails-jasypt' }.projectDir}/src/main/groovy",
         grailsVersion       : grailsVersion
 ]
 
