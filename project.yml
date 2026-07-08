@@ -18,11 +18,9 @@ contributors:
   ZenHarbinger: "Matthew Aguirre"
   burtbeckwith: "Burt Beckwith"
 versions:
-  current: "5.0.0"
+  current: "5.0.0-RC1"
   previous:
-  - "4.0.4"
-  - "1.2.1"
-  - "1.2.0"
+  - "5.0.0-RC1"
   ignore:
   - "5.0.x"
   - "snapshot"
