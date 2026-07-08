@@ -16,6 +16,7 @@ env:
   JAVA_DISTRIBUTION: 'liberica'
   REPO_NAME: ${{ github.event.repository.name }}
   RUN_ID: ${{ github.run_id }}
+  RUN_ATTEMPT: ${{ github.run_attempt }}
   TAG: ${{ github.event.release.tag_name }}
   VERSION: 'will be computed in each job'
 concurrency:
@@ -77,7 +78,7 @@ jobs:
           NEXUS_PUBLISH_USERNAME: ${{ secrets.NEXUS_PUBLISH_USERNAME }}
           NEXUS_PUBLISH_PASSWORD: ${{ secrets.NEXUS_PUBLISH_PASSWORD }}
           NEXUS_PUBLISH_URL: 'https://ossrh-staging-api.central.sonatype.com/service/local/'
-          NEXUS_PUBLISH_DESCRIPTION: '${{ env.REPO_NAME }}:${{ env.VERSION }}:${{ env.RUN_ID }}'
+          NEXUS_PUBLISH_DESCRIPTION: '${{ env.REPO_NAME }}:${{ env.VERSION }}:${{ env.RUN_ID }}:${{ env.RUN_ATTEMPT }}'
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           SIGNING_PASSPHRASE: ${{ secrets.SIGNING_PASSPHRASE }}
         run: >
@@ -133,7 +134,7 @@ jobs:
           NEXUS_PUBLISH_USERNAME: ${{ secrets.NEXUS_PUBLISH_USERNAME }}
           NEXUS_PUBLISH_PASSWORD: ${{ secrets.NEXUS_PUBLISH_PASSWORD }}
           NEXUS_PUBLISH_URL: 'https://ossrh-staging-api.central.sonatype.com/service/local/'
-          NEXUS_PUBLISH_DESCRIPTION: '${{ env.REPO_NAME }}:${{ env.VERSION }}:${{ env.RUN_ID }}'
+          NEXUS_PUBLISH_DESCRIPTION: '${{ env.REPO_NAME }}:${{ env.VERSION }}:${{ env.RUN_ID }}:${{ env.RUN_ATTEMPT }}'
         run: >
           ./gradlew
           findSonatypeStagingRepository
