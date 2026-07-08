@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':grails-jasypt-encryption')
+    implementation project(':grails-jasypt')
 
     console "org.apache.grails:grails-console"
     developmentOnly "org.springframework.boot:spring-boot-devtools"

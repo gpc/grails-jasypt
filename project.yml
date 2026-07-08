@@ -1,6 +1,6 @@
 ---
 project:
-  name: "grails-jasypt-encryption-plugin"
+  name: "grails-jasypt"
   title: "Grails Jasypt Encryption plugin"
   description: "The Grails Jasypt Encryption plugin provides strong field-level encryption\
     \ support on Grails GORM String fields. It leverages the Jasypt simplified encryption\

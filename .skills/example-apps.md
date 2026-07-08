@@ -28,7 +28,7 @@ Each example app declares the plugin as a regular dependency, just as an externa
 
 ```groovy
 dependencies {
-    implementation project(':grails-jasypt-encryption')
+    implementation project(':grails-jasypt')
 }
 ```
 
