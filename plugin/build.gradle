@@ -21,7 +21,7 @@ dependencies {
     compileOnly 'org.apache.grails:grails-data-hibernate5'
     implementation 'org.jasypt:jasypt:1.9.3'
     implementation 'org.jasypt:jasypt-hibernate5:1.9.3'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.84'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.85.2'
 
     testImplementation platform("org.apache.grails:grails-bom:$grailsVersion")
     testImplementation 'org.apache.grails:grails-dependencies-starter-web'
