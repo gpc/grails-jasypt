@@ -6,3 +6,6 @@
 version: 1
 references:
   - purl: pkg:maven/io.github.gpc/grails-jasypt-encryption
+  - purl: pkg:maven/io.github.gpc/grails-jasypt-encryption-core
+  - purl: pkg:maven/io.github.gpc/grails-jasypt-encryption-hibernate5
+  - purl: pkg:maven/io.github.gpc/grails-jasypt-encryption-hibernate7

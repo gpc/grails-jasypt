@@ -1,0 +1,36 @@
+plugins {
+    // grails-publish requires the java or java-platform plugin. With java-platform and no
+    // components, only the (signed) POM is published, as required for a relocation POM.
+    id 'java-platform'
+    id 'config.project-metadata'
+    id 'config.publish'
+}
+
+version = projectVersion
+group = 'io.github.gpc'
+
+// Up to version 5 the plugin was published as io.github.gpc:grails-jasypt-encryption.
+// This POM relocates that artifact to the Hibernate 5 flavour, which matches its behaviour.
+def relocatedArtifactId = 'grails-jasypt-encryption-hibernate5'
+
+extensions.configure(org.apache.grails.gradle.publish.GrailsPublishExtension) {
+    it.addComponents = false
+    it.desc = "Relocated to ${group}:${relocatedArtifactId}. ${projectDescription}"
+}
+
+extensions.configure(PublishingExtension) {
+    it.publications.withType(MavenPublication).configureEach {
+        pom {
+            packaging = 'pom'
+            distributionManagement {
+                relocation {
+                    groupId = project.group as String
+                    artifactId = relocatedArtifactId
+                    version = project.version as String
+                    message = "${project.name} is now published as ${relocatedArtifactId} (Hibernate 5) " +
+                            'and grails-jasypt-encryption-hibernate7 (Hibernate 7)'
+                }
+            }
+        }
+    }
+}

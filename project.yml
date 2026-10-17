@@ -23,4 +23,5 @@ versions:
   - "5.0.0-RC1"
   ignore:
   - "5.0.x"
+  - "6.0.x"
   - "snapshot"

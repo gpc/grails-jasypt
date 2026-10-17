@@ -2,6 +2,9 @@
 === Custom Encryption Types
 
 The plugin provides "Gorm" versions of all the built in Encrypted types provided by the jasypt plugin, see http://www.jasypt.org/hibernate.html.
+Jasypt only provides these types for Hibernate 5, so the Hibernate 7 flavour of the plugin implements them itself, storing the values in the same format.
+
+==== Hibernate 5
 
 It is also possible to define your own GORM encrypted types. This happens in two steps. First, you need a `UserType` that handles the encryption. This might be a class you have already from an existing Java application or you could extend the jasypt class `AbstractEncryptedAsStringType`. Second, you define a new Gorm Encrypted type that composes that `UserType` to provide the wiring to the Grails configuration.
 
@@ -11,7 +14,7 @@ Here's an example that can encrypt joda-time dates (requires the joda-time jar t
 ----
 package com.bloomhealthco.jasypt
 
-import org.jasypt.hibernate.type.AbstractEncryptedAsStringType
+import org.jasypt.hibernate5.type.AbstractEncryptedAsStringType
 import org.joda.time.LocalDate
 
 public class EncryptedLocalDateAsStringType extends AbstractEncryptedAsStringType {
@@ -32,5 +35,35 @@ public class EncryptedLocalDateAsStringType extends AbstractEncryptedAsStringTyp
 }
 
 public class GormEncryptedLocalDateAsStringType extends JasyptConfiguredUserType<EncryptedLocalDateAsStringType> {
+}
+----
+
+==== Hibernate 7
+
+With the Hibernate 7 flavour, extend the plugin's `AbstractEncryptedAsStringType`. It wires the encryptor from the
+Grails configuration itself, so no additional Gorm type is needed:
+
+[source,groovy]
+----
+package com.bloomhealthco.jasypt
+
+import java.time.LocalDate
+
+class GormEncryptedLocalDateAsStringType extends AbstractEncryptedAsStringType<LocalDate> {
+
+    @Override
+    Class<LocalDate> returnedClass() {
+        LocalDate
+    }
+
+    @Override
+    protected LocalDate convertToObject(String string) {
+        LocalDate.parse(string)
+    }
+
+    @Override
+    protected String convertToString(LocalDate value) {
+        value.toString()
+    }
 }
 ----

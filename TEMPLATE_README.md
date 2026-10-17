@@ -200,7 +200,7 @@ The `contributors` and `versions` blocks are maintained automatically by GitHub 
 | Property | Description |
 |---|---|
 | `projectVersion` | Current version, e.g. `1.0.0-SNAPSHOT`. Use `-SNAPSHOT` suffix on development branches. |
-| `grailsVersion` | Grails BOM version to compile and test against, e.g. `7.0.11`. |
+| `grailsVersion` | Grails BOM version to compile and test against, e.g. `8.0.0`. |
 | `projectsToPublish` | Comma-separated list of subproject names to include in Maven publishing. Usually just the plugin artifact name. |
 | `asciidoctorVersion` | Version of the Asciidoctor Gradle plugin used by the `docs` subproject. |
 | `testLoggerVersion` | Version of the Gradle test-logger plugin. |
@@ -214,7 +214,7 @@ The `org.gradle.*` properties at the bottom control daemon, caching, and JVM set
 
 ```properties
 projectVersion=1.0.0-SNAPSHOT
-grailsVersion=7.0.11
+grailsVersion=8.0.0
 projectsToPublish=grails-my-plugin
 asciidoctorVersion=4.0.5
 testLoggerVersion=4.0.0
@@ -266,6 +266,6 @@ sdk env install
 
 | Tool | Version |
 |---|---|
-| Java | `17.0.18-librca` (Liberica JDK) |
-| Gradle | `8.14.4` |
-| Groovy | `4.0.30` |
+| Java | `21.0.12-librca` (Liberica JDK) |
+| Gradle | `9.8.1` |
+| Groovy | `5.1.3` |

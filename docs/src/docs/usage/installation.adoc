@@ -1,23 +1,56 @@
 [[installation]]
 === Installation
 
+Grails 8 supports both Hibernate 5 and Hibernate 7, so the plugin comes in two flavours. Add the one matching
+the GORM Hibernate version of your app:
+
+[cols="1,2"]
+|===
+|GORM | Dependency
+
+|Hibernate 5 (`grails-data-hibernate5`)
+|`implementation "io.github.gpc:grails-jasypt-encryption-hibernate5:6.0.0"`
+
+|Hibernate 7 (`grails-data-hibernate7`)
+|`implementation "io.github.gpc:grails-jasypt-encryption-hibernate7:6.0.0"`
+|===
+
+For example, for an app using Hibernate 5:
+
 [source,groovy]
 ----
 dependencies {
-    implementation "org.tros:jasypt-encryption:5.0.0"
+    implementation "io.github.gpc:grails-jasypt-encryption-hibernate5:6.0.0"
 }
 ----
 
-If your app is using *Grails 7* or higher, then use version *5.0.0* of this plugin.
+Both flavours depend on `grails-jasypt-encryption-core`, which contains the Grails plugin and the shared configuration.
+They provide the same encrypted types with the same class names, they are configured the same way, and they store
+the encrypted values in the same format. You can therefore switch an app from Hibernate 5 to Hibernate 7 by
+switching the dependency, without changing your domain classes or re-encrypting your data.
 
-*Requirements for Grails 7:*
+==== Upgrading from version 5
 
-* Java 17 or higher
-* Gradle 8.5 or higher
+Up to version 5 the plugin was published as `io.github.gpc:grails-jasypt-encryption`. From version 6, that artifact
+is only a relocation to `grails-jasypt-encryption-hibernate5`, so an existing build depending on
+
+[source,groovy]
+----
+implementation "io.github.gpc:grails-jasypt-encryption:6.0.0"
+----
+
+resolves to the Hibernate 5 flavour. Please replace it with `grails-jasypt-encryption-hibernate5`, or with
+`grails-jasypt-encryption-hibernate7` when your app uses Hibernate 7.
+
+*Requirements for Grails 8:*
+
+* Java 21 or higher
+* Gradle 9.6 or higher
 
 ==== Previous versions
 
-If your app is using *Grails 4*, then use version *4.0.3* of this plugin.
+* If your app is using *Grails 7*, then use version *5.0.0* of `io.github.gpc:grails-jasypt-encryption` (Java 17 or higher, Gradle 8.5 or higher).
+* If your app is using *Grails 4*, then use version *4.0.3* of this plugin.
 
 ==== No longer supported
 
