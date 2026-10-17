@@ -1,6 +1,10 @@
-# Contributing to Export
+# Contributing
 
 Thank you for your interest in contributing! This guide will help you get started.
+
+> This file is synced from [grails-plugin-template](https://github.com/grails-plugins/grails-plugin-template) and
+> kept generic on purpose — it should read correctly in every repo built on the template. To lock it and stop
+> receiving updates, add a `CONTRIBUTING.md.lock` file next to it.
 
 ## Code of Conduct
 
@@ -21,10 +25,10 @@ curl -s "https://get.sdkman.io" | bash
 
 ```bash
 # Clone the repository
-git clone https://github.com/gpc/grails-export.git
-cd export
+git clone <this repository's URL>
+cd <the cloned directory>
 
-# Install the required SDK versions (Java 17, Gradle 8.14.4, Groovy 4.0.30)
+# Install the required SDK versions (Java, Gradle, Groovy — see .sdkmanrc)
 sdk env install
 
 # Build the project
@@ -34,12 +38,12 @@ sdk env install
 ### Project Structure
 
 ```
-export/
+.
 ├── plugin/              # The publishable Grails plugin (source + unit tests ONLY)
 ├── examples/app1/       # Example app with integration tests
-├── build-logic/         # Gradle convention plugins (shared build configuration)
+├── conventions/         # Gradle convention plugins (shared build configuration)
 ├── docs/                # Asciidoctor documentation
-└── .skills/             # AI agent best-practice docs
+└── .agents/skills/      # AI agent skills (.claude is a symlink to .agents)
 ```
 
 Key architectural rules:
@@ -47,7 +51,7 @@ Key architectural rules:
 - **Plugin module** contains only plugin source code and unit tests – no integration tests, no example controllers.
 - **Example apps** under `examples/` host all integration and functional tests. They depend on the plugin as a real
   consumer would.
-- **Convention plugins** in `build-logic/` deduplicate build configuration. Never use `subprojects {}`,
+- **Convention plugins** in `conventions/` deduplicate build configuration. Never use `subprojects {}`,
   `allprojects {}`, or `configure()` blocks in the root `build.gradle`.
 
 ## Building and Testing
@@ -57,7 +61,7 @@ Key architectural rules:
 ./gradlew build
 
 # Plugin unit tests only
-./gradlew :grails-jasypt:test
+./gradlew test
 
 # Integration tests (runs the example app)
 ./gradlew :app1:integrationTest
@@ -110,18 +114,16 @@ categorize changes in release notes.
 
 ### Coding Standards
 
-- **Language:** Groovy 4.0 on Java 17
-- **Framework:** Grails 7.0
+- **Language:** Groovy on Java (see `.sdkmanrc` for exact versions)
+- **Framework:** Grails
 - **Testing:** Spock Framework on JUnit Platform
 - Follow existing code conventions in the project
-- Metric names must conform to [RFC 7230 token rules](https://tools.ietf.org/html/rfc7230#section-3.2.6)
-- Use `System.nanoTime()` for timing precision
 
 ### Gradle Conventions
 
 - Always use lazy APIs: `tasks.register()`, `tasks.named()`, `configureEach`, `provider {}`
 - Never use eager task creation (`tasks.create()`, `project.task()`)
-- If two or more subprojects share build logic, extract it into a convention plugin in `build-logic/`
+- If two or more subprojects share build logic, extract it into a convention plugin in `conventions/`
 
 ## Submitting a Pull Request
 
@@ -131,7 +133,7 @@ categorize changes in release notes.
     - Integration tests go in `examples/app1/src/integration-test/`
 3. **Update documentation** if you changed behavior or added features (in `docs/src/docs/`)
 4. **Push your branch** and open a pull request against the release branch
-5. **Fill out the PR template** completely
+5. **Fill out the PR template** if the repository provides one
 
 ### What to Expect
 
@@ -142,13 +144,8 @@ categorize changes in release notes.
 
 ## Reporting Issues
 
-- Use
-  the [bug report template](https://github.com/gpc/grails-export/issues/new?template=bug_report.yml)
-  for bugs
-- Use
-  the [feature request template](https://github.com/gpc/grails-export/issues/new?template=feature_request.yml)
-  for enhancements
-- Check [existing issues](https://github.com/gpc/grails-export/issues) before creating a new one
+- Check this repository's existing issues before creating a new one
+- Use the bug report or feature request template if the repository provides one under its "New issue" flow
 
 ## Security Vulnerabilities
 
@@ -159,4 +156,4 @@ users while we investigate and prepare a fix.
 ## License
 
 By contributing to this project, you agree that your contributions will be licensed under
-the [Apache License 2.0](LICENSE).
+the [Apache License 2.0](LICENSE.txt).

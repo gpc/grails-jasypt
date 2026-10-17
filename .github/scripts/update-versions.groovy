@@ -22,13 +22,26 @@ def requestProps = [
 ]
 
 def projectYmlFile = new File('project.yml')
-def projectYml     = new YamlSlurper().parse(projectYmlFile) as Map
-def ignore         = (projectYml.versions?.ignore ?: []) as List<String>
+if (!projectYmlFile.exists()) {
+    println "project.yml not found at repo root — cannot update versions or generate the gh-pages index. " +
+        "See TEMPLATE_README.md#projectyml."
+    System.exit(1)
+}
+def projectYml = new YamlSlurper().parse(projectYmlFile) as Map
+def ignore     = (projectYml.versions?.ignore ?: []) as List<String>
 
-def entries = new JsonSlurper().parseText(
-    "https://api.github.com/repos/${repo}/contents/?ref=gh-pages"
-        .toURL().getText(requestProperties: requestProps)
-) as List
+def entries = []
+try {
+    entries = new JsonSlurper().parseText(
+        "https://api.github.com/repos/${repo}/contents/?ref=gh-pages"
+            .toURL().getText(requestProperties: requestProps)
+    ) as List
+} catch (FileNotFoundException ignored) {
+    // No gh-pages branch yet (e.g. the plugin hasn't released for the first time,
+    // or this is the template repo itself, which never publishes). Fall through
+    // with no versioned directories rather than failing the workflow.
+    println "No gh-pages branch found for ${repo} — building index with snapshot only"
+}
 
 def semver   = ~/^\d+\.\d+\.(\d+|x)(-.*)?$/
 def parseVer = { String v ->
