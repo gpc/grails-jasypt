@@ -1,6 +1,6 @@
 package jasypt.encryption
 
-import grails.plugins.*
+import grails.plugins.Plugin
 import java.security.Security
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -16,21 +16,21 @@ class JasyptEncryptionGrailsPlugin extends Plugin {
     }
 
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "4.0.0 > *"
+    def grailsVersion = '4.0.0 > *'
   
-    def title = "Jasypt Encryption"
+    def title = 'Jasypt Encryption'
     def description = 'Integration with Jasypt, allows easy encryption of information including Hibernate/GORM integration'
-    def license = "APACHE"
+    def license = 'APACHE'
     def developers = [
-            [name: "Ted Naleid", email: 'contact@naleid.com'],
-            [name: "Jon Palmer"],
-            [name: "Dan Tanner", email: 'dan@dantanner.com'],
-            [name: "Matt Aguirre", email: 'matt@tros.org'],
-            [name: "Søren Berg Glasius", email: "soeren@glasius.dk"]
+            [name: 'Ted Naleid', email: 'contact@naleid.com'],
+            [name: 'Jon Palmer'],
+            [name: 'Dan Tanner', email: 'dan@dantanner.com'],
+            [name: 'Matt Aguirre', email: 'matt@tros.org'],
+            [name: 'Søren Berg Glasius', email: 'soeren@glasius.dk']
     ]
-    def documentation = "http://grails.org/plugin/jasypt-encryption"
-    def issueManagement = [system: "GITHUB", url: "https://github.com/ZenHarbinger/grails-jasypt/issues"]
-    def scm = [url: "https://github.com/ZenHarbinger/grails-jasypt"]
+    def documentation = 'http://grails.org/plugin/jasypt-encryption'
+    def issueManagement = [system: 'GITHUB', url: 'https://github.com/ZenHarbinger/grails-jasypt/issues']
+    def scm = [url: 'https://github.com/ZenHarbinger/grails-jasypt']
     def profiles = ['web']
 
 }
