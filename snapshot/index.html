@@ -532,7 +532,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <h1>Grails Jasypt Encryption Plugin - Reference Documentation</h1>
 <div class="details">
 <span id="author" class="author">Grails Plugins Collective</span><br>
-<span id="revnumber">version 5.0.0-SNAPSHOT</span>
+<span id="revnumber">version 6.0.0-SNAPSHOT</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -613,40 +613,88 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="installation">Installation</h3>
+<div class="paragraph">
+<p>Grails 8 supports both Hibernate 5 and Hibernate 7, so the plugin comes in two flavours. Add the one matching
+the GORM Hibernate version of your app:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">GORM</th>
+<th class="tableblock halign-left valign-top">Dependency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hibernate 5 (<code>grails-data-hibernate5</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>implementation "io.github.gpc:grails-jasypt-encryption-hibernate5:6.0.0"</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hibernate 7 (<code>grails-data-hibernate7</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>implementation "io.github.gpc:grails-jasypt-encryption-hibernate7:6.0.0"</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>For example, for an app using Hibernate 5:</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">&quot;</span><span class="content">io.github.gpc:jasypt:5.0.0</span><span class="delimiter">&quot;</span></span>
+    implementation <span class="string"><span class="delimiter">&quot;</span><span class="content">io.github.gpc:grails-jasypt-encryption-hibernate5:6.0.0</span><span class="delimiter">&quot;</span></span>
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If your app is using <strong>Grails 7</strong> or higher, then use version <strong>5.0.0</strong> of this plugin.</p>
+<p>Both flavours depend on <code>grails-jasypt-encryption-core</code>, which contains the Grails plugin and the shared configuration.
+They provide the same encrypted types with the same class names, they are configured the same way, and they store
+the encrypted values in the same format. You can therefore switch an app from Hibernate 5 to Hibernate 7 by
+switching the dependency, without changing your domain classes or re-encrypting your data.</p>
+</div>
+<div class="sect3">
+<h4 id="upgrading-from-version-5">Upgrading from version 5</h4>
+<div class="paragraph">
+<p>Up to version 5 the plugin was published as <code>io.github.gpc:grails-jasypt-encryption</code>. From version 6, that artifact
+is only a relocation to <code>grails-jasypt-encryption-hibernate5</code>, so an existing build depending on</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy">implementation <span class="string"><span class="delimiter">&quot;</span><span class="content">io.github.gpc:grails-jasypt-encryption:6.0.0</span><span class="delimiter">&quot;</span></span></code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p><strong>Requirements for Grails 7:</strong></p>
+<p>resolves to the Hibernate 5 flavour. Please replace it with <code>grails-jasypt-encryption-hibernate5</code>, or with
+<code>grails-jasypt-encryption-hibernate7</code> when your app uses Hibernate 7.</p>
+</div>
+<div class="paragraph">
+<p><strong>Requirements for Grails 8:</strong></p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Java 17 or higher</p>
+<p>Java 21 or higher</p>
 </li>
 <li>
-<p>Gradle 8.5 or higher</p>
+<p>Gradle 9.6 or higher</p>
 </li>
 </ul>
 </div>
+</div>
 <div class="sect3">
 <h4 id="previous-versions">Previous versions</h4>
-<div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
+<p>If your app is using <strong>Grails 7</strong>, then use version <strong>5.0.0</strong> of <code>io.github.gpc:grails-jasypt-encryption</code> (Java 17 or higher, Gradle 8.5 or higher).</p>
+</li>
+<li>
 <p>If your app is using <strong>Grails 4</strong>, then use version <strong>4.0.3</strong> of this plugin.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">&quot;</span><span class="content">org.tros:jasypt-encryption:4.0.3</span><span class="delimiter">&quot;</span></span>
-}</code></pre>
-</div>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect3">
@@ -779,14 +827,17 @@ sudo cp jce/*.jar $JAVA_HOME/jre/lib/security</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>One other caveat, if you&#8217;re setting the length of the field within the database schema, you&#8217;ll need to give yourself extra room as the encrypted value will be longer than the unencrypted value was. This length will depend on the encryption algorithm that you use. It&#8217;s easy to write an integration test that can spit out all of the encrypted lengths for you. See <code>testEncryptionWithLongNamesFit()</code> in the plugin&#8217;s <a href="https://github.com/gpc/grails-jasypt/blob/master/examples/sample/src/integration-test/groovy/com/bloomhealthco/domain/JasyptDomainEncryptionTests.groovy">sample project</a> for an example.</p>
+<p>One other caveat, if you&#8217;re setting the length of the field within the database schema, you&#8217;ll need to give yourself extra room as the encrypted value will be longer than the unencrypted value was. This length will depend on the encryption algorithm that you use. It&#8217;s easy to write an integration test that can spit out all of the encrypted lengths for you. See <code>testEncryptionWithLongNamesFit()</code> in the plugin&#8217;s <a href="https://github.com/gpc/grails-jasypt/blob/6.0.x/examples/sample-hibernate5/src/integration-test/groovy/com/bloomhealthco/domain/JasyptDomainEncryptionTests.groovy">sample project</a> for an example.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="customTypes">Custom Encryption Types</h3>
 <div class="paragraph">
-<p>The plugin provides "Gorm" versions of all the built in Encrypted types provided by the jasypt plugin, see <a href="http://www.jasypt.org/hibernate.html" class="bare">http://www.jasypt.org/hibernate.html</a>.</p>
+<p>The plugin provides "Gorm" versions of all the built in Encrypted types provided by the jasypt plugin, see <a href="http://www.jasypt.org/hibernate.html" class="bare">http://www.jasypt.org/hibernate.html</a>.
+Jasypt only provides these types for Hibernate 5, so the Hibernate 7 flavour of the plugin implements them itself, storing the values in the same format.</p>
 </div>
+<div class="sect3">
+<h4 id="hibernate-5">Hibernate 5</h4>
 <div class="paragraph">
 <p>It is also possible to define your own GORM encrypted types. This happens in two steps. First, you need a <code>UserType</code> that handles the encryption. This might be a class you have already from an existing Java application or you could extend the jasypt class <code>AbstractEncryptedAsStringType</code>. Second, you define a new Gorm Encrypted type that composes that <code>UserType</code> to provide the wiring to the Grails configuration.</p>
 </div>
@@ -797,7 +848,7 @@ sudo cp jce/*.jar $JAVA_HOME/jre/lib/security</code></pre>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy"><span class="keyword">package</span> com.bloomhealthco.jasypt
 
-<span class="keyword">import</span> <span class="include">org.jasypt.hibernate.type.AbstractEncryptedAsStringType</span>
+<span class="keyword">import</span> <span class="include">org.jasypt.hibernate5.type.AbstractEncryptedAsStringType</span>
 <span class="keyword">import</span> <span class="include">org.joda.time.LocalDate</span>
 
 <span class="directive">public</span> <span class="type">class</span> <span class="class">EncryptedLocalDateAsStringType</span> <span class="directive">extends</span> AbstractEncryptedAsStringType {
@@ -822,10 +873,46 @@ sudo cp jce/*.jar $JAVA_HOME/jre/lib/security</code></pre>
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="hibernate-7">Hibernate 7</h4>
+<div class="paragraph">
+<p>With the Hibernate 7 flavour, extend the plugin&#8217;s <code>AbstractEncryptedAsStringType</code>. It wires the encryptor from the
+Grails configuration itself, so no additional Gorm type is needed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy"><span class="keyword">package</span> com.bloomhealthco.jasypt
+
+<span class="keyword">import</span> <span class="include">java.time.LocalDate</span>
+
+<span class="type">class</span> <span class="class">GormEncryptedLocalDateAsStringType</span> <span class="directive">extends</span> AbstractEncryptedAsStringType&lt;LocalDate&gt; {
+
+    <span class="annotation">@Override</span>
+    <span class="predefined-type">Class</span>&lt;LocalDate&gt; returnedClass() {
+        LocalDate
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="directive">protected</span> LocalDate convertToObject(<span class="predefined-type">String</span> string) {
+        LocalDate.parse(string)
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="directive">protected</span> <span class="predefined-type">String</span> convertToString(LocalDate value) {
+        value.toString()
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
 <div class="sect2">
 <h3 id="furtherDocumentation">Further Documentation</h3>
 <div class="paragraph">
-<p>For now, documentation is a little light. There&#8217;s a <a href="https://github.com/gpc/grails-jasypt/tree/master/examples/sample">sample project</a> checked in as part of the repository that shows the plugin being used (and has tests that exercise the functionality). The <a href="https://github.com/gpc/grails-jasypt/blob/master/examples/sample/grails-app/domain/com/bloomhealthco/domain/Patient.groovy">Patient domain object</a> has encrypted <code>firstName</code> and <code>lastName</code> fields on it.</p>
+<p>For now, documentation is a little light. There&#8217;s a <a href="https://github.com/gpc/grails-jasypt/tree/6.0.x/examples/sample-hibernate5">sample project</a> checked in as part of the repository that shows the plugin being used (and has tests that exercise the functionality). The <a href="https://github.com/gpc/grails-jasypt/blob/6.0.x/examples/sample-hibernate5/grails-app/domain/com/bloomhealthco/domain/Patient.groovy">Patient domain object</a> has encrypted <code>firstName</code> and <code>lastName</code> fields on it.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="https://github.com/gpc/grails-jasypt/tree/6.0.x/examples/sample-hibernate7">Hibernate 7 sample project</a> runs the same sources and tests on Hibernate 7.</p>
 </div>
 </div>
 </div>
@@ -835,6 +922,9 @@ sudo cp jce/*.jar $JAVA_HOME/jre/lib/security</code></pre>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
+<li>
+<p>6.0.0 - Migrated to Grails 8.0.0 (Java 21, Groovy 5). Added support for Hibernate 7. The plugin is now split into <code>grails-jasypt-encryption-hibernate5</code> and <code>grails-jasypt-encryption-hibernate7</code>, sharing <code>grails-jasypt-encryption-core</code>. The former <code>grails-jasypt-encryption</code> artifact is relocated to <code>grails-jasypt-encryption-hibernate5</code></p>
+</li>
 <li>
 <p>5.0.0 - Migrated to Grails 7.0.0</p>
 </li>
@@ -872,8 +962,8 @@ sudo cp jce/*.jar $JAVA_HOME/jre/lib/security</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Version 5.0.0-SNAPSHOT<br>
-Last updated 2026-10-17 16:25:38 UTC
+Version 6.0.0-SNAPSHOT<br>
+Last updated 2026-10-17 16:49:45 UTC
 </div>
 </div>
 </body>
