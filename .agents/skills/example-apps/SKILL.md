@@ -1,3 +1,8 @@
+---
+name: example-apps
+description: Patterns for example applications under examples/ — hosting integration and functional tests, depending on the plugin as a real consumer, and app structure. Use when creating or modifying an example app, or deciding where a test belongs.
+---
+
 # Example Application Best Practices
 
 ## Purpose
@@ -28,7 +33,7 @@ Each example app declares the plugin as a regular dependency, just as an externa
 
 ```groovy
 dependencies {
-    implementation project(':grails-jasypt')
+    implementation project(':my-plugin')
 }
 ```
 
@@ -44,20 +49,26 @@ The `examples/` directory can contain more than one app. Different apps can test
 - Edge cases or unusual setups
 - Performance scenarios
 
-All apps under `examples/` are auto-discovered by `settings.gradle`:
+All apps under `examples/` are auto-discovered by the root `settings.gradle`:
 
 ```groovy
-def examples = file('examples').listFiles({ it.directory } as FileFilter)
-examples.each { example ->
-    include example.name
-    project(":$example.name").projectDir = file("examples/$example.name")
+file('examples').listFiles({ it.directory } as FileFilter).each {
+    include(it.name)
+    project(":$it.name").projectDir = file("examples/$it.name")
 }
 ```
 
-New apps are also automatically included in coverage aggregation -- `code-coverage/build.gradle` discovers all example apps
-under `examples/` at configuration time, so no manual registration is needed.
+Coverage aggregation works differently: `code-coverage/build.gradle` only applies the `config.code-coverage-aggregate`
+convention plugin, which pulls in every subproject in `rootProject.subprojects` that applies `config.code-coverage` --
+it does not scan `examples/` directly. As of now, `config.example-app.gradle` does not apply `config.code-coverage`,
+so newly added example apps are auto-discovered as projects but are NOT automatically part of
+`jacocoAggregatedReport` -- that convention plugin would need to be added to `config.example-app.gradle` (or to the
+app's own `build.gradle`) for its coverage to be aggregated.
 
 ## Project Structure
+
+A typical example app looks like this (this template's own `examples/app1/` currently has no `src/integration-test/`
+directory yet -- add one following this layout when the app needs integration tests):
 
 ```
 examples/app1/
@@ -65,23 +76,20 @@ examples/app1/
 ├── grails-app/
 │   ├── conf/
 │   │   ├── application.yml           # App config (enables plugin, DB, etc.)
-│   │   ├── logback-spring.xml
-│   │   └── spring/resources.groovy
+│   │   └── logback.xml
 │   ├── controllers/app1/
-│   │   ├── ServerTimingTestController.groovy   # Controllers that exercise the plugin
+│   │   ├── FeatureTestController.groovy   # Controllers that exercise the plugin
 │   │   └── UrlMappings.groovy
 │   ├── init/app1/
-│   │   ├── Application.groovy
-│   │   └── BootStrap.groovy
+│   │   └── Application.groovy
 │   ├── views/
-│   │   ├── serverTimingTest/          # GSP views for testing view timing
+│   │   ├── featureTest/           # GSP views for testing the plugin's view-layer behavior
 │   │   ├── layouts/main.gsp
 │   │   └── ...
-│   ├── assets/                        # Static assets for testing asset timing
-│   └── i18n/                          # Message bundles
+│   └── assets/                        # Static assets for testing asset-related behavior
 └── src/
     └── integration-test/groovy/app1/
-        └── ServerTimingIntegrationSpec.groovy   # Integration tests
+        └── FeatureIntegrationSpec.groovy   # Integration tests
 ```
 
 ## build.gradle Pattern
@@ -98,7 +106,7 @@ group = 'app1'
 
 dependencies {
     // The plugin under test
-    implementation project(':grails-server-timing')
+    implementation project(':my-plugin')
 
     // Standard Grails app dependencies
     implementation platform("org.apache.grails:grails-bom:$grailsVersion")
@@ -118,9 +126,9 @@ dependencies {
 Key patterns:
 
 - Apply `example-app` convention plugin
-- Depend on the plugin via `project(':grails-server-timing')`
-- NEVER apply `project-publish` -- example apps are not published
-- NEVER apply `plugin` -- example apps are applications, not plugins
+- Depend on the plugin via `project(':my-plugin')`
+- NEVER apply `config.publish` -- example apps are not published
+- NEVER apply `config.grails-plugin` / `config.grails-web-plugin` -- example apps are applications, not plugins
 
 ## Integration Test Guidelines
 
@@ -128,7 +136,7 @@ Integration tests run against a live embedded Grails server using the `@Integrat
 
 ```groovy
 @Integration
-class ServerTimingIntegrationSpec extends Specification {
+class FeatureIntegrationSpec extends Specification {
 
     @Shared
     RestTemplate restTemplate = new RestTemplate()
@@ -141,36 +149,33 @@ class ServerTimingIntegrationSpec extends Specification {
         restTemplate.exchange("${baseUrl}${path}", HttpMethod.GET, null, String)
     }
 
-    void "fast action should include Server Timing header"() {
+    void "controller exercising the plugin behaves as expected"() {
         when:
-        def response = doGet('/serverTimingTest/fast')
+        def response = doGet('/featureTest/index')
 
         then:
-        response.headers.getFirst('Server-Timing') != null
-        def serverTiming = response.headers.getFirst('Server-Timing')
-        serverTiming.contains('action')
-        serverTiming.contains('view')
+        response.statusCode == HttpStatus.OK
+        response.body.contains('expected content')
     }
 }
 ```
 
 ### What to test in integration tests
 
-- HTTP headers are present and correctly formatted
-- Timing values are within expected ranges (e.g., slow action >= 200 ms)
-- Different response types (GSP views, JSON, plain text) all include headers
-- Static assets include `other`/`total` metrics but not `action`/`view`
-- Header format matches the W3C Server Timing specification
-- Plugin behavior under different controller patterns (fast, slow, variable delay)
-- Multiple operations accumulate timing correctly
+- The plugin's behavior is observable through real HTTP requests/responses
+- Different response types (GSP views, JSON, plain text) all behave correctly with the plugin applied
+- The plugin's public configuration options (e.g., enabling/disabling a feature) take effect in a running app
+- Plugin behavior under different controller patterns relevant to the plugin's feature set
+- Interaction between the plugin and other components (filters, interceptors, views) in a live server
 
 ### Integration test patterns
 
 1. **Use `RestTemplate` or similar HTTP client** -- test real HTTP round-trips
-2. **Verify headers, not internals** – assert on `Server-Timing` header values, not internal class state
-3. **Use timing thresholds, not exact values** -- assert `>= 200ms`, never `== 203ms`
-4. **Test edge cases** – static assets, JSON responses, redirects, errors
-5. **Extract helper methods** – centralize header parsing (e.g., `extractDuration()`)
+2. **Verify externally observable behavior, not internals** -- assert on responses/headers, not internal class state
+3. **Use realistic thresholds, not brittle exact values** -- when asserting timing- or size-based behavior, prefer
+   ranges over exact numbers
+4. **Test edge cases** -- static assets, JSON responses, redirects, errors
+5. **Extract helper methods** -- centralize repeated response parsing logic
 
 ### Test organization
 
@@ -181,14 +186,10 @@ class ServerTimingIntegrationSpec extends Specification {
 
 ## Test Controllers and Views
 
-Example apps should include purpose-built controllers and views that exercise the plugin's features:
-
-- **Fast actions** – verify baseline header presence
-- **Slow actions** (with `Thread.sleep()`) – verify timing accuracy
-- **Variable delay actions** – parameterized timing tests
-- **Slow views** (GSP with embedded sleep) – verify view timing separation
-- **JSON/text responses** – verify non-GSP response types
-- **Multiple operations** – verify timing accumulation
+Example apps should include purpose-built controllers and views that exercise the plugin's features -- what these
+look like depends entirely on what the plugin does. For example, a controller/view combination for each behavior
+the plugin adds or modifies, plus variants covering the different response types (GSP views, JSON, plain text) the
+plugin needs to support.
 
 These are test fixtures that live in the example app, NOT in the plugin project.
 

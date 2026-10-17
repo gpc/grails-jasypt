@@ -65,6 +65,11 @@ def ordered = humans.collectEntries { c ->
 
 // 4. Update the contributors section in project.yml
 def projectYmlFile = new File('project.yml')
+if (!projectYmlFile.exists()) {
+    println "project.yml not found at repo root — cannot update contributors. " +
+        "See TEMPLATE_README.md#projectyml."
+    System.exit(1)
+}
 def projectYml = new YamlSlurper().parse(projectYmlFile) as Map
 
 projectYml.contributors = ordered
