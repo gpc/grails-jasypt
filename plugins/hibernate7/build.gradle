@@ -1,0 +1,24 @@
+plugins {
+    id 'java-library'
+    id 'config.code-coverage'
+    id 'config.code-style'
+    id 'config.compile'
+    id 'config.project-metadata'
+    id 'config.publish'
+    id 'config.testing'
+}
+
+version = projectVersion
+group = 'io.github.gpc'
+
+dependencies {
+    api project(':grails-jasypt-encryption-core')
+
+    compileOnly platform("org.apache.grails:grails-hibernate7-bom:$grailsVersion")
+    compileOnly 'org.apache.grails:grails-core'
+    compileOnly 'org.apache.grails:grails-data-hibernate7'
+
+    testImplementation platform("org.apache.grails:grails-hibernate7-bom:$grailsVersion")
+    testImplementation 'org.apache.grails:grails-data-hibernate7'
+    testImplementation 'org.apache.grails:grails-dependencies-test'
+}

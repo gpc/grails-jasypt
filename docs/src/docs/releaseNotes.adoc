@@ -1,6 +1,7 @@
 [[releaseNotes]]
 == Release Notes
 
+* 6.0.0 - Migrated to Grails 8.0.0 (Java 21, Groovy 5). Added support for Hibernate 7. The plugin is now split into `grails-jasypt-encryption-hibernate5` and `grails-jasypt-encryption-hibernate7`, sharing `grails-jasypt-encryption-core`. The former `grails-jasypt-encryption` artifact is relocated to `grails-jasypt-encryption-hibernate5`
 * 5.0.0 - Migrated to Grails 7.0.0
 * 4.0.4 - Move to maven central, new group ID, can compile against Grails > 4.0.5
 * 4.0.3 - initial support for Grails 4

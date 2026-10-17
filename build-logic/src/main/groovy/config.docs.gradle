@@ -4,8 +4,8 @@
 def docProject = provider {
     project(":${project.name - 'root'}docs")
 }
-def pluginProject = provider {
-    project(":${project.name - '-root'}")
+def publishedProjects = provider {
+    projectsToPublish.tokenize(',')*.trim().findAll().collect { project(":$it") }
 }
 
 tasks.register('cleanDocs', Delete) {
@@ -15,28 +15,26 @@ tasks.register('cleanDocs', Delete) {
     delete(rootProject.layout.projectDirectory.dir('build/docs'))
 }
 
-tasks.register('aggregateGroovyApiDoc', Groovydoc) {
-    description = 'Generates Groovy API Documentation for the plugin project under build/docs/gapi'
+tasks.register('aggregateGroovyApiDoc', Sync) {
+    description = 'Copies the Groovy API Documentation of the published projects to build/docs/gapi/<project>'
     group = 'documentation'
 
-    def upstream = pluginProject.flatMap {
-        it.tasks.named('groovydoc', Groovydoc)
-    } as Provider<Groovydoc>
+    // Gradle 9 forbids resolving another project's configurations from this project,
+    // so reuse the projects' own groovydoc output instead of re-running groovydoc here.
+    def upstreams = publishedProjects.map { projects ->
+        projects.findAll { it.pluginManager.hasPlugin('groovy') }
+                .collect { it.tasks.named('groovydoc', Groovydoc) }
+    }
 
     dependsOn(tasks.named('cleanDocs'))
-    dependsOn(upstream)
+    dependsOn(upstreams)
 
-    access = GroovydocAccess.PROTECTED
-    includeAuthor = false
-    includeMainForScripts = true
-    processScripts = true
-    exclude('**/Application.groovy')
-
-
-    source = { upstream.get().source }
-    destinationDir = rootProject.layout.buildDirectory.dir('docs/gapi').get().asFile
-    classpath = files({ upstream.get().classpath })
-    groovyClasspath = files({ upstream.get().groovyClasspath })
+    into(rootProject.layout.buildDirectory.dir('docs/gapi'))
+    upstreams.get().each { upstream ->
+        into(upstream.get().project.name - "${project.name - 'root'}") {
+            from(upstream.map { it.destinationDir })
+        }
+    }
 }
 
 tasks.register('docs') {

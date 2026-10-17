@@ -149,7 +149,7 @@ Version numbers and shared settings live in `gradle.properties` at the root:
 
 ```properties
 projectVersion=0.0.1-SNAPSHOT
-grailsVersion=7.0.7
+grailsVersion=8.0.0
 ```
 
 These are available in all subprojects as project properties (`projectVersion`, `grailsVersion`).
@@ -182,7 +182,7 @@ These are available in all subprojects as project properties (`projectVersion`, 
 ./gradlew build
 
 # Plugin unit tests only
-./gradlew :grails-jasypt-encryption:test
+./gradlew :grails-jasypt-encryption-core:test
 
 # Example app integration tests
 ./gradlew :app1:integrationTest

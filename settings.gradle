@@ -36,8 +36,13 @@ buildCache {
 
 rootProject.name = 'grails-jasypt-encryption-root'
 
-include('plugin')
-project(':plugin').name = 'grails-jasypt-encryption'
+['core', 'hibernate5', 'hibernate7'].each {
+    include("grails-jasypt-encryption-$it")
+    project(":grails-jasypt-encryption-$it").projectDir = file("plugins/$it")
+}
+// Relocation POM for the artifact name used up to version 5
+include('grails-jasypt-encryption')
+project(':grails-jasypt-encryption').projectDir = file('plugins/relocation')
 include('docs')
 project(':docs').name = 'grails-jasypt-encryption-docs'
 include('code-coverage')

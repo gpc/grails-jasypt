@@ -5,10 +5,10 @@
 The Grails Jasypt Encryption plugin provides strong field-level encryption support on Grails
 GORM `String` fields, built on Jasypt and Bouncy Castle.
 
-- **Language:** Groovy 4.0.30 on Java 17
-- **Framework:** Grails 7.x
-- **Build System:** Gradle 8.14.4 (with wrapper)
-- **Current Version:** 5.0.0-SNAPSHOT
+- **Language:** Groovy 5.1.3 on Java 21
+- **Framework:** Grails 8.x
+- **Build System:** Gradle 9.8.1 (with wrapper)
+- **Current Version:** 6.0.0-SNAPSHOT
 - **License:** Apache 2.0
 
 ## Skill Files (Best Practices)
@@ -28,10 +28,11 @@ Detailed best practices are documented in `.skills/`:
 
 1. **NEVER add code to the root `build.gradle` to configure subprojects.** No `subprojects {}`, `allprojects {}`, or
    `configure()` blocks. All shared configuration goes through convention plugins in `build-logic/`.
-2. **The plugin project contains ONLY plugin code and unit tests.** No integration tests, no functional tests, no
+2. **The plugin projects contain ONLY plugin code and unit tests.** No integration tests, no functional tests, no
    example controllers or views.
 3. **Example apps under `examples/` host all integration and functional tests.** They depend on the plugin via
-   `implementation project(':grails-jasypt-encryption')` and test it as a real consumer would.
+   `implementation project(':grails-jasypt-encryption-hibernate5')` (or `-hibernate7`) and test it as a real
+   consumer would.
 4. **Use Gradle convention plugins to deduplicate.** If two or more subprojects share build logic, extract it into a
    convention plugin in `build-logic/`.
 5. **Always use lazy Gradle APIs** to avoid eager initialization (`tasks.register()`, `tasks.named()`, `configureEach`,
@@ -42,11 +43,14 @@ Detailed best practices are documented in `.skills/`:
 ```
 grails-jasypt/
 ├── .skills/             # Best practice skill files
-├── plugin/              # Core Grails plugin (artifact: grails-jasypt-encryption)
-│   ├── grails-app/      #   Plugin services, domain, controller, taglibs and conf
-│   └── src/main/        #   Plugin source code 
-├── examples/sample/     # Example Grails app
-│   └── grails-app/      #   Controllers and conf for integration testing
+├── plugins/
+│   ├── core/            # Grails plugin + shared config (artifact: grails-jasypt-encryption-core)
+│   ├── hibernate5/      # Hibernate 5 user types (artifact: grails-jasypt-encryption-hibernate5)
+│   ├── hibernate7/      # Hibernate 7 user types (artifact: grails-jasypt-encryption-hibernate7)
+│   └── relocation/      # Relocation POM from the pre-6.0 artifact grails-jasypt-encryption to -hibernate5
+├── examples/
+│   ├── sample-hibernate5/  # Example Grails app on Hibernate 5, with the integration tests
+│   └── sample-hibernate7/  # Runs the sources of sample-hibernate5 on Hibernate 7
 ├── docs/                # Asciidoctor documentation
 ├── build-logic/         # Gradle convention plugins (composite build)
 ├── .github/workflows/   # CI, release, and release-notes workflows
@@ -61,17 +65,17 @@ grails-jasypt/
 # Full build (compile + test)
 ./gradlew build
 
-# Run only unit tests (plugin module)
-./gradlew :grails-jasypt-encryption:test
+# Run only unit tests (plugin modules)
+./gradlew :grails-jasypt-encryption-core:test :grails-jasypt-encryption-hibernate5:test :grails-jasypt-encryption-hibernate7:test
 
-# Run integration tests (example app)
-./gradlew :sample:integrationTest
+# Run integration tests (example apps)
+./gradlew :sample-hibernate5:integrationTest :sample-hibernate7:integrationTest
 
 # Skip tests
 ./gradlew build -PskipTests
 
 # Run the example app
-./gradlew :sample:bootRun
+./gradlew :sample-hibernate5:bootRun
 
 # Generate documentation
 ./gradlew docs
@@ -90,45 +94,51 @@ grails-jasypt/
 
 Use SDKMAN to install the correct tool versions (see `.sdkmanrc`):
 
-- Java: `17.0.18-librca`
-- Gradle: `8.14.4`
-- Groovy: `4.0.30`
+- Java: `21.0.12-librca`
+- Gradle: `9.8.1`
+- Groovy: `5.1.3`
 
 Run `sdk env install` to set up the environment.
 
 ## Architecture
 
-The plugin provides GORM `UserType` implementations that transparently encrypt/decrypt field
-values using Jasypt:
+Grails 8 supports both Hibernate 5 and Hibernate 7, so the plugin is split into three published modules:
 
-1. **`JasyptEncryptionGrailsPlugin`** registers the plugin and wires up the `jasypt` configuration
-   namespace.
-2. **`JasyptConfiguredUserType`** and its subclasses (`GormEncryptedStringType`,
-   `GormEncryptedBigDecimalType`, etc.) implement the actual field-level encryption for each
-   supported type.
+1. **`grails-jasypt-encryption-core`** contains the Grails plugin descriptor `JasyptEncryptionGrailsPlugin`
+   (registers the Bouncy Castle provider) and `JasyptDefaultParameters`, which reads the `jasypt` config
+   namespace. It exposes `jasypt`, `jasypt-hibernate5` (only its Hibernate independent encryptor registry and
+   parameter names are used) and Bouncy Castle as API dependencies.
+2. **`grails-jasypt-encryption-hibernate5`** wraps the jasypt-hibernate5 `UserType`s in
+   `JasyptConfiguredUserType` subclasses (`GormEncryptedStringType`, `GormEncryptedBigDecimalType`, etc.).
+3. **`grails-jasypt-encryption-hibernate7`** implements the same `GormEncrypted*Type` classes (same names
+   and package) on the Hibernate 7 `UserType` API, as jasypt has no Hibernate 7 support. They must store
+   values in the same format as the Hibernate 5 types, so apps can switch without re-encrypting data.
+
+`plugins/relocation` publishes only a POM for `grails-jasypt-encryption` (the artifact name up to version 5),
+relocating it to `grails-jasypt-encryption-hibernate5`.
 
 ### Core Classes
 
-| Class / Interface               | Location                                                    | Purpose                                                     |
-|----------------------------------|--------------------------------------------------------------|--------------------------------------------------------------|
-| `JasyptEncryptionGrailsPlugin`  | `plugin/src/main/groovy/jasypt/encryption/`                 | Plugin descriptor; configures Jasypt from `jasypt` config    |
-| `JasyptConfiguredUserType`      | `plugin/src/main/groovy/com/bloomhealthco/jasypt/`          | Base class wiring a Jasypt encryptor to a Hibernate `UserType` |
-| `GormEncrypted*Type`            | `plugin/src/main/groovy/com/bloomhealthco/jasypt/`          | Per-type GORM mappings (String, BigDecimal, Boolean, etc.)   |
-
-## Configuration
+| Class / Interface              | Location                                                  | Purpose                                                        |
+|--------------------------------|-----------------------------------------------------------|----------------------------------------------------------------|
+| `JasyptEncryptionGrailsPlugin` | `plugins/core/src/main/groovy/jasypt/encryption/`         | Plugin descriptor; registers the Bouncy Castle provider        |
+| `JasyptDefaultParameters`      | `plugins/core/src/main/groovy/com/bloomhealthco/jasypt/`  | Default user type parameters from the `jasypt` config          |
+| `JasyptConfiguredUserType`     | `plugins/hibernate5/src/main/groovy/com/bloomhealthco/jasypt/` | Base class wiring a jasypt-hibernate5 `UserType` to the config |
+| `AbstractEncryptedUserType`    | `plugins/hibernate7/src/main/groovy/com/bloomhealthco/jasypt/` | Base class of the Hibernate 7 user types                       |
+| `JasyptEncryptorParameters`    | `plugins/hibernate7/src/main/groovy/com/bloomhealthco/jasypt/` | Creates the jasypt encryptors like jasypt-hibernate5 does      |
+| `GormEncrypted*Type`           | `plugins/hibernate{5,7}/src/main/groovy/com/bloomhealthco/jasypt/` | Per-type GORM mappings (String, BigDecimal, Boolean, etc.)  |
 
 ## Testing
 
-There is currently no unit test set in `plugin/src/test/`.
+### Unit Tests (`plugins/*/src/test/`)
 
-### Unit Tests (`plugin/src/test/`)
+Unit tests use the **Spock Framework** and run on JUnit Platform.
 
-Unit tests use the **Spock Framework** and run on JUnit Platform. 
+### Integration / Functional Tests (`examples/`)
 
-### Integration / Functional Tests (`examples/sample/`)
-
-The `Patient` domain object in the example app has encrypted `firstName` and `lastName` fields.
-Integration tests added here depend on the plugin as a real consumer would.
+The `Patient` domain object in the example app has encrypted fields of most of the supported types.
+The integration tests live in `examples/sample-hibernate5`; `examples/sample-hibernate7` uses the sources of
+that app (see its `build.gradle`), so add sources and tests to `sample-hibernate5` only.
 
 ## Build-Logic Convention Plugins
 

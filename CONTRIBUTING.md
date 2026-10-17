@@ -1,4 +1,4 @@
-# Contributing to Export
+# Contributing to Grails Jasypt Encryption
 
 Thank you for your interest in contributing! This guide will help you get started.
 
@@ -21,10 +21,10 @@ curl -s "https://get.sdkman.io" | bash
 
 ```bash
 # Clone the repository
-git clone https://github.com/gpc/grails-export.git
-cd export
+git clone https://github.com/gpc/grails-jasypt.git
+cd grails-jasypt
 
-# Install the required SDK versions (Java 17, Gradle 8.14.4, Groovy 4.0.30)
+# Install the required SDK versions (Java 21, Gradle 9.8.1, Groovy 5.1.3)
 sdk env install
 
 # Build the project
@@ -34,9 +34,13 @@ sdk env install
 ### Project Structure
 
 ```
-export/
-├── plugin/              # The publishable Grails plugin (source + unit tests ONLY)
-├── examples/app1/       # Example app with integration tests
+grails-jasypt/
+├── plugins/core/        # The publishable Grails plugin with the shared configuration (source + unit tests ONLY)
+├── plugins/hibernate5/  # The publishable Hibernate 5 encrypted types (source + unit tests ONLY)
+├── plugins/hibernate7/  # The publishable Hibernate 7 encrypted types (source + unit tests ONLY)
+├── plugins/relocation/  # Relocation POM for the pre-6.0 artifact name grails-jasypt-encryption
+├── examples/sample-hibernate5/  # Example app with integration tests
+├── examples/sample-hibernate7/  # Runs the sample-hibernate5 sources and tests on Hibernate 7
 ├── build-logic/         # Gradle convention plugins (shared build configuration)
 ├── docs/                # Asciidoctor documentation
 └── .skills/             # AI agent best-practice docs
@@ -44,7 +48,7 @@ export/
 
 Key architectural rules:
 
-- **Plugin module** contains only plugin source code and unit tests – no integration tests, no example controllers.
+- **Plugin modules** contain only plugin source code and unit tests – no integration tests, no example controllers.
 - **Example apps** under `examples/` host all integration and functional tests. They depend on the plugin as a real
   consumer would.
 - **Convention plugins** in `build-logic/` deduplicate build configuration. Never use `subprojects {}`,
@@ -57,13 +61,13 @@ Key architectural rules:
 ./gradlew build
 
 # Plugin unit tests only
-./gradlew :grails-jasypt-encryption:test
+./gradlew :grails-jasypt-encryption-core:test :grails-jasypt-encryption-hibernate5:test :grails-jasypt-encryption-hibernate7:test
 
-# Integration tests (runs the example app)
-./gradlew :app1:integrationTest
+# Integration tests (runs the example apps on Hibernate 5 and Hibernate 7)
+./gradlew :sample-hibernate5:integrationTest :sample-hibernate7:integrationTest
 
 # Run the example app locally
-./gradlew :app1:bootRun
+./gradlew :sample-hibernate5:bootRun
 
 # Generate documentation
 ./gradlew docs
@@ -89,8 +93,8 @@ Reports are generated at:
 | Report                          | Location                                                                         |
 |---------------------------------|----------------------------------------------------------------------------------|
 | Aggregated (unit + integration) | `code-coverage/build/reports/jacoco/jacocoAggregatedReport/html/index.html`      |
-| Plugin unit tests               | `plugin/build/reports/jacoco/test/html/index.html`                               |
-| App1 integration tests          | `examples/app1/build/reports/jacoco/jacocoIntegrationTestReport/html/index.html` |
+| Plugin unit tests               | `plugins/<module>/build/reports/jacoco/test/html/index.html`                     |
+| Sample app integration tests    | `examples/<app>/build/reports/jacoco/jacocoIntegrationTestReport/html/index.html` |
 
 The aggregated report is also produced automatically as part of `./gradlew build`, so you can view it after any full
 build.
@@ -99,7 +103,7 @@ build.
 
 ### Branching Strategy
 
-- Create a feature branch from the current release branch (e.g., `0.1.x`):
+- Create a feature branch from the current release branch (e.g., `6.0.x`):
     - `feature/short-description` for new features
     - `fix/short-description` for bug fixes
     - `docs/short-description` for documentation changes
@@ -110,12 +114,12 @@ categorize changes in release notes.
 
 ### Coding Standards
 
-- **Language:** Groovy 4.0 on Java 17
-- **Framework:** Grails 7.0
+- **Language:** Groovy 5.1 on Java 21
+- **Framework:** Grails 8.0
 - **Testing:** Spock Framework on JUnit Platform
 - Follow existing code conventions in the project
-- Metric names must conform to [RFC 7230 token rules](https://tools.ietf.org/html/rfc7230#section-3.2.6)
-- Use `System.nanoTime()` for timing precision
+- Changes to the encrypted types must be made to both the Hibernate 5 and the Hibernate 7 module, and must not
+  change the format of the stored values
 
 ### Gradle Conventions
 
@@ -127,8 +131,8 @@ categorize changes in release notes.
 
 1. **Ensure all tests pass** locally: `./gradlew build`
 2. **Write tests** for new functionality:
-    - Unit tests go in `plugin/src/test/`
-    - Integration tests go in `examples/app1/src/integration-test/`
+    - Unit tests go in `plugins/<module>/src/test/`
+    - Integration tests go in `examples/sample-hibernate5/src/integration-test/` (they also run on Hibernate 7)
 3. **Update documentation** if you changed behavior or added features (in `docs/src/docs/`)
 4. **Push your branch** and open a pull request against the release branch
 5. **Fill out the PR template** completely
@@ -142,13 +146,8 @@ categorize changes in release notes.
 
 ## Reporting Issues
 
-- Use
-  the [bug report template](https://github.com/gpc/grails-export/issues/new?template=bug_report.yml)
-  for bugs
-- Use
-  the [feature request template](https://github.com/gpc/grails-export/issues/new?template=feature_request.yml)
-  for enhancements
-- Check [existing issues](https://github.com/gpc/grails-export/issues) before creating a new one
+- Report bugs and request enhancements in [GitHub issues](https://github.com/gpc/grails-jasypt/issues)
+- Check [existing issues](https://github.com/gpc/grails-jasypt/issues) before creating a new one
 
 ## Security Vulnerabilities
 
