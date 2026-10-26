@@ -13,53 +13,63 @@ on:
 
 permissions:
   contents: write
-
-env:
-  JAVA_DISTRIBUTION: 'liberica'
+  pull-requests: write
 
 jobs:
   update-contributors:
+    # Contributors are only maintained in the plugin repos this workflow is synced to
+    if: ${{ github.repository != 'grails-plugins/grails-plugin-template' }}
     runs-on: ubuntu-24.04
     steps:
-      - name: "📥 Checkout repository"
-        uses: actions/checkout@v6
-
-      - name: "Export .sdkmanrc properties"
-        uses: apache/grails-github-actions/export-gradle-properties@asf
-        with:
-          file: ".sdkmanrc"
-          prefix: "SDKMANRC_"
-
-      - name: "Determine Java Version"
-        run: echo "SDKMANRC_java=${{ env.SDKMANRC_java }}" | sed 's/-.*//' >> $GITHUB_ENV
-
-      - name: "☕️ Setup JDK"
-        uses: actions/setup-java@v5
-        with:
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          java-version: ${{ env.SDKMANRC_java }}
-
-      - name: "🦊 Install Groovy ${{ env.SDKMANRC_groovy }}"
+      # A pull request opened with GITHUB_TOKEN never triggers workflows, so on a
+      # protected branch that requires status checks those checks would never
+      # report and the fallback PR could not merge. Prefer the org's GitHub App
+      # (the same credentials files-sync.yml uses) when it is configured, and
+      # fall back to GITHUB_TOKEN where it is not. The secrets context is not
+      # available in `if:`, so probe it through a step's env first.
+      - name: "🔎 Check for GitHub App credentials"
+        id: app-creds
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
         run: |
-          curl -s "https://get.sdkman.io" | bash
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdk install groovy ${{ env.SDKMANRC_groovy }} < /dev/null
-          echo "$HOME/.sdkman/candidates/groovy/current/bin" >> $GITHUB_PATH
+          if [ -n "${APP_ID}" ] && [ -n "${APP_PRIVATE_KEY}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No GitHub App credentials — using GITHUB_TOKEN"
+          fi
+
+      - name: "🔑 Mint GitHub App token"
+        id: app-token
+        if: steps.app-creds.outputs.available == 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
 
       - name: "👥 Update contributors in project.yml"
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: groovy .github/scripts/update-contributors.groovy
+        run: bash .github/scripts/groovy.sh .github/scripts/update-contributors.groovy
 
       - name: "📝 Commit if changed"
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet project.yml; then
-            git add project.yml
-            git commit -m "chore: update contributors [skip ci]"
-            git push
-          else
-            echo "No contributor changes to commit"
-          fi
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.ref_name }}
+          COMMIT_MESSAGE: "chore: update contributors [skip ci]"
+          PR_BRANCH: "chore/update-contributors"
+          PR_TITLE: "chore: update contributors [skip ci]"
+          PR_BODY: |
+            Refreshes the `contributors` section of `project.yml` from the
+            repository's commit history.
+
+            Opened automatically because the direct push to
+            `${{ github.ref_name }}` was rejected — that branch is protected.
+        run: bash .github/scripts/commit-or-pr.sh project.yml
